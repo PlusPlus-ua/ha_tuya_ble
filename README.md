@@ -21,7 +21,7 @@ The integration works locally, but connection to Tuya BLE device requires device
 ## Supported devices list
 
 * Fingerbots (category_id 'szjqr')
-  + Fingerbot (product_id 'yrnk7mnn'), original device fists in category, powered by CR2 battery.
+  + Fingerbot (product_id 'yrnk7mnn'), original device, first in category, powered by CR2 battery.
   + Fingerbot Plus (product_id 'yiihr7zh'), almost same as original, has sensor button for manual control.
   + CubeTouch II (product_id 'xhf790if'), bult-in battery with USB type C charging.
   All features available in Home Assistant, except programming (series of actions) - it's not documented and looks useless because it could be implemented by Home Assistant scripts or automations.
