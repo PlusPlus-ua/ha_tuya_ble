@@ -4,7 +4,7 @@
 
 This integration supports various Mobile-Alerts sensors. The integration acts as proxy server between Mobile-Alerts gateway and cloud. 
 
-_Inspired by [@redphx] code (https://github.com/redphx/poc-tuya-ble-fingerbot)
+_Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)
 
 ## Installation
 
