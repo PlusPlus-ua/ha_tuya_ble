@@ -1,0 +1,147 @@
+{
+  "config": {
+    "abort": {
+      "no_unconfigured_devices": "No unconfigured devices found."
+    },
+    "error": {
+      "device_not_registered": "Device is not registered in Tuya cloud",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "login_error": "Login error ({code}): {msg}"
+    },
+    "flow_title": "{name}",
+    "step": {
+      "device": {
+        "data": {
+          "address": "Bluetooth address"
+        },
+        "description": "Select Tuya BLE device to setup. Device must be registered in the cloud using the mobile application. It's better to unbind the device from Tuya Bluetooth gateway, if any."
+      },
+      "login": {
+        "data": {
+          "access_id": "Tuya IoT Access ID",
+          "access_secret": "Tuya IoT Access Secret",
+          "country_code": "Country",
+          "password": "[%key:common::config_flow::data::password%]",
+          "username": "Account"
+        },
+        "description": "Tuya BLE requires obtaining encryption key from Tuya cloud. Almost all devices only need to access the cloud once during setup.\n\nRefer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "push": {
+        "name": "Push"
+      }
+    },
+    "number": {
+      "brightness": {
+        "name": "[%key:component::light::entity_component::_::state_attributes::brightness::name%]"
+      },
+      "carbon_dioxide_alarm_level": {
+        "name": "Alarm level"
+      },
+      "down_position": {
+        "name": "Down position"
+      },
+      "hold_time": {
+        "name": "Hold time"
+      },
+      "reporting_period": {
+        "name": "Reporting period"
+      },
+      "up_position": {
+        "name": "Up position"
+      }
+    },
+    "select": {
+      "fingerbot_mode": {
+        "name": "Mode",
+        "state": {
+          "push": "Push",
+          "switch": "[%key:component::switch::entity_component::_::name%]"
+        }
+      },
+      "temperature_unit": {
+        "name": "Temperature unit"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "[%key:component::sensor::entity_component::battery::name%]"
+      },
+      "battery_charging": {
+        "name": "Battery charging",
+        "state": {
+          "charged": "Charged",
+          "charging": "[%key:component::binary_sensor::entity_component::battery_charging::state::on%]",
+          "not_charging": "[%key:component::binary_sensor::entity_component::battery_charging::state::off%]"
+        }
+      },
+      "battery_state": {
+        "name": "Battery state",
+        "state": {
+          "high": "High",
+          "low": "[%key:component::binary_sensor::entity_component::battery::state::on%]",
+          "normal": "[%key:component::binary_sensor::entity_component::battery::state::off%]"
+        }
+      },
+      "carbon_dioxide": {
+        "name": "[%key:component::sensor::entity_component::carbon_dioxide::name%]"
+      },
+      "carbon_dioxide_alarm": {
+        "name": "Carbon dioxide level",
+        "state": {
+          "alarm": "Alarm",
+          "normal": "Normal"
+        }
+      },
+      "humidity": {
+        "name": "[%key:component::sensor::entity_component::humidity::name%]"
+      },
+      "moisture": {
+        "name": "[%key:component::sensor::entity_component::moisture::name%]"
+      },
+      "signal_strength": {
+        "name": "[%key:component::sensor::entity_component::signal_strength::name%]"
+      },
+      "temperature": {
+        "name": "[%key:component::sensor::entity_component::temperature::name%]"
+      }
+    },
+    "switch": {
+      "carbon_dioxide_alarm_switch": {
+        "name": "Alarm enabled"
+      },
+      "carbon_dioxide_severely_exceed_alarm": {
+        "name": "Severely exceed alarm"
+      },
+      "low_battery_alarm": {
+        "name": "Low battery alarm"
+      },
+      "manual_control": {
+        "name": "Manual control"
+      },
+      "reverse_positions": {
+        "name": "Reverse positions"
+      },
+      "switch": {
+        "name": "[%key:component::switch::entity_component::_::name%]"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "login": {
+        "data": {
+          "access_id": "Tuya IoT Access ID",
+          "access_secret": "Tuya IoT Access Secret",
+          "country_code": "Country",
+          "password": "[%key:common::config_flow::data::password%]",
+          "username": "Account"
+        },
+        "description": "Refer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+      }
+    }
+  }
+}

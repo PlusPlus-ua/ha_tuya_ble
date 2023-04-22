@@ -1,0 +1,17 @@
+{
+  "domain": "tuya_ble",
+  "name": "Tuya BLE",
+  "bluetooth": [
+    {
+      "connectable": true,
+      "service_data_uuid": "0000a201-0000-1000-8000-00805f9b34fb"
+    }
+  ],
+  "codeowners": ["@PlusPlus-ua"],
+  "config_flow": true,
+  "dependencies": ["bluetooth_adapters", "tuya"],
+  "documentation": "https://www.home-assistant.io/integrations/tuya_ble",
+  "requirements": ["tuya-iot-py-sdk==0.6.6", "pycountry"],
+  "iot_class": "local_push",
+  "version": "0.1.0"
+}
