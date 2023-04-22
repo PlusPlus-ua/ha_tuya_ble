@@ -1,4 +1,5 @@
-"""Config flow for LEDBLE integration."""
+"""Config flow for Tuya BLE integration."""
+
 from __future__ import annotations
 
 import logging
