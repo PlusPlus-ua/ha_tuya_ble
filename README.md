@@ -4,7 +4,7 @@
 
 This integration supports Tuya devices connected via BLE.
 
-_Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)
+_Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)_
 
 ## Installation
 
@@ -14,7 +14,7 @@ Place the `custom_components` folder in your configuration directory (or add its
 
 ## Usage
 
-After adding to Home Assistan integration should discover all supported Bluetooth devices, or you can add discoverable devices manually.
+After adding to Home Assistant integration should discover all supported Bluetooth devices, or you can add discoverable devices manually.
 
 The integration works locally, but connection to Tuya BLE device requires device ID and encryption key from Tuya IOT cloud. It could be obtained using the same credentials as in official Tuya integration. To obtain the credentials, please refer to official Tuya integration [documentation](https://www.home-assistant.io/integrations/tuya/)
 
@@ -22,8 +22,9 @@ The integration works locally, but connection to Tuya BLE device requires device
 
 * Fingerbots (category_id 'szjqr')
   + Fingerbot (product_id 'yrnk7mnn'), original device, first in category, powered by CR2 battery.
+  + Adaprox Fingerbot (product_id 'y6kttvd6'), built-in battery with USB type C charging.
   + Fingerbot Plus (product_ids 'blliqpsj', 'yiihr7zh'), almost same as original, has sensor button for manual control.
-  + CubeTouch II (product_id 'xhf790if'), bult-in battery with USB type C charging.
+  + CubeTouch II (product_id 'xhf790if'), built-in battery with USB type C charging.
 
   All features available in Home Assistant, except programming (series of actions) - it's not documented and looks useless because it could be implemented by Home Assistant scripts or automations.
 
