@@ -132,11 +132,13 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                     ),
                 ],
             ),
-            "yrnk7mnn":  # Fingerbot
-            [
-                TuyaBLEFingerbotSwitchMapping(dp_id=2),
-                TuyaBLEReversePositionsMapping(dp_id=11),
-            ],
+            **dict.fromkeys(
+                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                [
+                    TuyaBLEFingerbotSwitchMapping(dp_id=2),
+                    TuyaBLEReversePositionsMapping(dp_id=11),
+                ],
+            ),
         },
     ),
     "wsdcg": TuyaBLECategorySwitchMapping(

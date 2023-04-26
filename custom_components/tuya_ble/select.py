@@ -103,10 +103,12 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                     TuyaBLEFingerbotModeMapping(dp_id=8),
                 ],
             ),
-            "yrnk7mnn":  # Fingerbot
-            [
-                TuyaBLEFingerbotModeMapping(dp_id=8),
-            ],
+            **dict.fromkeys(
+                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                [
+                    TuyaBLEFingerbotModeMapping(dp_id=8),
+                ],
+            ),
         },
     ),
 }
