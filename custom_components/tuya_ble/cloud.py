@@ -5,7 +5,7 @@ import logging
 
 from dataclasses import dataclass
 import json
-from typing import Any
+from typing import Any, Iterable
 
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.components.tuya.const import (
@@ -36,6 +36,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpda
 from .tuya_ble import AbstaractTuyaBLEDeviceManager, TuyaBLEDevice, TuyaBLEDeviceCredentials
 
 from .const import (
+    CONF_PRODUCT_MODEL,
     CONF_UUID,
     CONF_LOCAL_KEY,
     CONF_DEVICE_ID,
@@ -44,6 +45,7 @@ from .const import (
     CONF_DEVICE_NAME,
     CONF_PRODUCT_NAME,
     DOMAIN,
+    TUYA_API_DEVICES_URL,
     TUYA_API_FACTORY_INFO_URL,
     TUYA_FACTORY_INFO_MAC,
 )
@@ -77,6 +79,7 @@ CONF_TUYA_DEVICE_KEYS = [
     CONF_PRODUCT_ID,
     CONF_DEVICE_NAME,
     CONF_PRODUCT_NAME,
+    CONF_PRODUCT_MODEL,
 ]
 
 _cache: dict[str, TuyaCloudCacheItem] = {}
@@ -164,39 +167,35 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
         return await self._login(self._data, add_to_cache)
 
     async def _fill_cache_item(self, item: TuyaCloudCacheItem) -> None:
-        openmq = TuyaOpenMQ(item.api)
-        openmq.start()
-
-        device_manager = TuyaDeviceManager(item.api, openmq)
-        await self._hass.async_add_executor_job(
-            device_manager.update_device_list_in_smart_home
+        devices_response = await self._hass.async_add_executor_job(
+            item.api.get,
+            TUYA_API_DEVICES_URL % (item.api.token_info.uid),
         )
-
-        for tuya_device in device_manager.device_map.values():
-            response = await self._hass.async_add_executor_job(
-                item.api.get,
-                "%s=%s" % (
-                    TUYA_API_FACTORY_INFO_URL,
-                    tuya_device.id,
-                ),
-            )
-            factory_info = response[TUYA_RESPONSE_RESULT][0]
-            if TUYA_FACTORY_INFO_MAC in factory_info:
-                mac = ':'.join(
-                    factory_info[TUYA_FACTORY_INFO_MAC][i:i + 2]
-                    for i in range(0, 12, 2)
-                ).upper()
-                item.credentials[mac] = {
-                    CONF_ADDRESS: mac,
-                    CONF_UUID: tuya_device.uuid,
-                    CONF_LOCAL_KEY: tuya_device.local_key,
-                    CONF_DEVICE_ID: tuya_device.id,
-                    CONF_CATEGORY: tuya_device.category,
-                    CONF_PRODUCT_ID: tuya_device.product_id,
-                    CONF_DEVICE_NAME: tuya_device.name,
-                    CONF_PRODUCT_NAME: tuya_device.product_name,
-                }
-        openmq.stop()
+        if devices_response.get(TUYA_RESPONSE_SUCCESS):
+            devices = devices_response.get(TUYA_RESPONSE_RESULT)
+            if isinstance(devices, Iterable):
+                for device in devices:
+                    fi_response = await self._hass.async_add_executor_job(
+                        item.api.get,
+                        TUYA_API_FACTORY_INFO_URL % (device.get("id")),
+                    )
+                    factory_info = fi_response[TUYA_RESPONSE_RESULT][0]
+                    if TUYA_FACTORY_INFO_MAC in factory_info:
+                        mac = ':'.join(
+                            factory_info[TUYA_FACTORY_INFO_MAC][i:i + 2]
+                            for i in range(0, 12, 2)
+                        ).upper()
+                        item.credentials[mac] = {
+                            CONF_ADDRESS: mac,
+                            CONF_UUID: device.get("uuid"),
+                            CONF_LOCAL_KEY: device.get("local_key"),
+                            CONF_DEVICE_ID: device.get("id"),
+                            CONF_CATEGORY: device.get("category"),
+                            CONF_PRODUCT_ID: device.get("product_id"),
+                            CONF_DEVICE_NAME: device.get("name"),
+                            CONF_PRODUCT_MODEL: device.get("model"),
+                            CONF_PRODUCT_NAME: device.get("product_name"),
+                        }
 
     async def build_cache(self) -> None:
         global _cache
@@ -274,6 +273,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                 credentials.get(CONF_CATEGORY, ""),
                 credentials.get(CONF_PRODUCT_ID, ""),
                 credentials.get(CONF_DEVICE_NAME, ""),
+                credentials.get(CONF_PRODUCT_MODEL, ""),
                 credentials.get(CONF_PRODUCT_NAME, ""),
             )
             _LOGGER.debug("Retrieved: %s", result)
@@ -283,7 +283,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                 self._data.update(credentials)
 
         return result
-    
+
     @property
     def data(self) -> dict[str, Any]:
         return self._data

@@ -268,8 +268,12 @@ def get_device_info(device: TuyaBLEDevice) -> DeviceInfo | None:
         product_info = get_product_info_by_ids(
             device.category,
             device.product_id
-        )
-    product_name = product_info.name if product_info else device.name
+        )        
+    product_name : str
+    if product_info:
+       product_name = product_info.name
+    else:
+       product_name = device.name
     result = DeviceInfo(
         connections={(dr.CONNECTION_BLUETOOTH, device.address)},
         hw_version=device.hardware_version,
@@ -279,7 +283,7 @@ def get_device_info(device: TuyaBLEDevice) -> DeviceInfo | None:
             DEVICE_DEF_MANUFACTURER
         ),
         model=("%s (%s)") % (
-            product_name,
+            device.product_model or product_name,
             device.product_id,
         ),
         name=("%s %s") % (

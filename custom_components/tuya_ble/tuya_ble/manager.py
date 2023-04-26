@@ -12,6 +12,7 @@ class TuyaBLEDeviceCredentials:
     category: str
     product_id: str
     device_name: str | None
+    product_model: str | None
     product_name: str | None
 
     def __str__(self):
@@ -23,11 +24,13 @@ class TuyaBLEDeviceCredentials:
             "category: %s, "
             "product_id: %s, "
             "device_name: %s, "
+            "product_model: %s, "
             "product_name: %s"
         ) % (
             self.category,
             self.product_id,
             self.device_name,
+            self.product_model,
             self.product_name,
         )
 

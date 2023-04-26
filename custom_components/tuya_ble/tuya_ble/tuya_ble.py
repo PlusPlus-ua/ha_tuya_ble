@@ -225,7 +225,7 @@ class TuyaBLEDevice:
         self._connect_lock = asyncio.Lock()
         self._client: BleakClientWithServiceCache | None = None
         self._expected_disconnect = False
-        self._connected_callbacks: list[Callable[[], None]] = []        
+        self._connected_callbacks: list[Callable[[], None]] = []
         self._callbacks: list[Callable[[list[TuyaBLEDataPoint]], None]] = []
         self._disconnected_callbacks: list[Callable[[], None]] = []
         self._current_seq_num = 1
@@ -406,6 +406,13 @@ class TuyaBLEDevice:
     def product_id(self) -> str:
         if self._device_info is not None:
             return self._device_info.product_id
+        else:
+            return ""
+
+    @property
+    def product_model(self) -> str:
+        if self._device_info is not None:
+            return self._device_info.product_model
         else:
             return ""
 
@@ -621,6 +628,8 @@ class TuyaBLEDevice:
                             exc_info=True
                         )
                         continue
+                else:
+                    continue
 
                 if self._client and self._client.is_connected:
                     _LOGGER.debug(
@@ -646,6 +655,8 @@ class TuyaBLEDevice:
                             exc_info=True
                         )
                         continue
+                else:
+                    continue
 
                 if self._client and self._client.is_connected:
                     _LOGGER.debug(
@@ -671,10 +682,34 @@ class TuyaBLEDevice:
                             exc_info=True
                         )
                         continue
+                else:
+                    continue
 
                 break
-            
-        self._fire_connected_callbacks()
+
+        if self._client:
+            if self._client.is_connected:
+                if self._is_paired:
+                    _LOGGER.debug(
+                        "%s: Successfully connected",
+                        self.address
+                    )
+                    self._fire_connected_callbacks()
+                else:
+                    _LOGGER.error(
+                        "%s: Connected but not paired",
+                        self.address
+                    )
+            else:
+                _LOGGER.error(
+                    "%s: Not connected",
+                    self.address
+                )
+        else:
+            _LOGGER.error(
+                "%s: No client device",
+                self.address
+            )
 
     async def _reconnect(self, use_delay: bool = True) -> None:
         """Attempt a reconnect"""
@@ -805,7 +840,7 @@ class TuyaBLEDevice:
                 ex,
             )
             await self._execute_disconnect()
-            raise
+            raise BleakError from ex
         except BleakError as ex:
             # Disconnect so we can reset state and try again
             _LOGGER.debug(
@@ -869,12 +904,21 @@ class TuyaBLEDevice:
                     future = asyncio.Future()
                     self._input_expected_responses[seq_num] = future
 
-                _LOGGER.debug(
-                    "%s: Sending packet: #%s %s",
-                    self.address,
-                    seq_num,
-                    code.name,
-                )
+                if response_to > 0:
+                    _LOGGER.debug(
+                        "%s: Sending packet: #%s %s in response to #%s",
+                        self.address,
+                        seq_num,
+                        code.name,
+                        response_to,
+                    )
+                else:
+                    _LOGGER.debug(
+                        "%s: Sending packet: #%s %s",
+                        self.address,
+                        seq_num,
+                        code.name,
+                    )
                 packets: list[bytes] = self._build_packets(
                     seq_num, code, data, response_to
                 )
