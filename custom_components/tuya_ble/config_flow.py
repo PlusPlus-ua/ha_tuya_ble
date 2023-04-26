@@ -9,7 +9,11 @@ from typing import Any
 import voluptuous as vol
 from tuya_iot import AuthType
 
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    OptionsFlowWithConfigEntry,
+)
 from homeassistant.components.bluetooth import (
     BluetoothServiceInfoBleak,
     async_discovered_service_info,
@@ -144,12 +148,12 @@ def _show_login_form(
     )
 
 
-class TuyaBLEOptionsFlow(OptionsFlow):
+class TuyaBLEOptionsFlow(OptionsFlowWithConfigEntry):
     """Handle a Tuya BLE options flow."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        super().__init__(config_entry)
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -172,21 +176,20 @@ class TuyaBLEOptionsFlow(OptionsFlow):
                 self.config_entry.entry_id
             ]
             if entry:
-                data = await _try_login(
+                login_data = await _try_login(
                     entry.manager,
                     user_input,
                     errors,
                     placeholders,
                 )
-                if data:
+                if login_data:
                     credentials = await entry.manager.get_device_credentials(
                         address, True, True
                     )
                     if credentials:
                         return self.async_create_entry(
                             title=self.config_entry.title,
-                            data=self.config_entry.data,
-                            options=data,
+                            data=entry.manager.data,
                         )
                     else:
                         errors["base"] = "device_not_registered"
@@ -205,6 +208,7 @@ class TuyaBLEConfigFlow(ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Initialize the config flow."""
+        super().__init__()
         self._discovery_info: BluetoothServiceInfoBleak | None = None
         self._discovered_devices: dict[str, BluetoothServiceInfoBleak] = {}
         self._data: dict[str, Any] = {}

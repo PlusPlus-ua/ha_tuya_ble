@@ -117,19 +117,21 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 TuyaBLEFingerbotSwitchMapping(dp_id=1),
                 TuyaBLEReversePositionsMapping(dp_id=4),
             ],
-            "yiihr7zh":  # Fingerbot Plus
-            [
-                TuyaBLEFingerbotSwitchMapping(dp_id=2),
-                TuyaBLEReversePositionsMapping(dp_id=11),
-                TuyaBLESwitchMapping(
-                    dp_id=17,
-                    description=SwitchEntityDescription(
-                        key="manual_control",
-                        icon="mdi:gesture-tap-box",
-                        entity_category=EntityCategory.CONFIG,
+            **dict.fromkeys(
+                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    TuyaBLEFingerbotSwitchMapping(dp_id=2),
+                    TuyaBLEReversePositionsMapping(dp_id=11),
+                    TuyaBLESwitchMapping(
+                        dp_id=17,
+                        description=SwitchEntityDescription(
+                            key="manual_control",
+                            icon="mdi:gesture-tap-box",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-            ],
+                ],
+            ),
             "yrnk7mnn":  # Fingerbot
             [
                 TuyaBLEFingerbotSwitchMapping(dp_id=2),

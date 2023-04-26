@@ -161,18 +161,20 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     ),
                 ),
             ],
-            "yiihr7zh":  # Fingerbot Plus
-            [
-                TuyaBLENumberMapping(
-                    dp_id=9,
-                    description=TuyaBLEDownPositionDescription(),
-                ),
-                TuyaBLEHoldTimeMapping(dp_id=10),
-                TuyaBLENumberMapping(
-                    dp_id=15,
-                    description=TuyaBLEUpPositionDescription(),
-                ),
-            ],
+            **dict.fromkeys(
+                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    TuyaBLENumberMapping(
+                        dp_id=9,
+                        description=TuyaBLEDownPositionDescription(),
+                    ),
+                    TuyaBLEHoldTimeMapping(dp_id=10),
+                    TuyaBLENumberMapping(
+                        dp_id=15,
+                        description=TuyaBLEUpPositionDescription(),
+                    ),
+                ],
+            ),
             "yrnk7mnn":  # Fingerbot
             [
                 TuyaBLENumberMapping(

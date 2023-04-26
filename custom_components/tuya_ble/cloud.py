@@ -283,3 +283,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                 self._data.update(credentials)
 
         return result
+    
+    @property
+    def data(self) -> dict[str, Any]:
+        return self._data

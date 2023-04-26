@@ -102,7 +102,7 @@ class TuyaBLECoordinator(DataUpdateCoordinator[None]):
     @property
     def connected(self) -> bool:
         return not self._disconnected
-    
+
     @callback
     def _async_handle_connect(self) -> None:
         if self._unsub_disconnect is not None:
@@ -172,20 +172,22 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                     up_position=5,
                     down_position=6,
                     hold_time=3,
-                    reverse_positions=4,        
+                    reverse_positions=4,
                 ),
             ),
-            "yiihr7zh":  # device product_id
-            TuyaBLEProductInfo(
-                name="Fingerbot Plus",
-                fingerbot=TuyaBLEFingerbotInfo(
-                    switch=2,
-                    mode=8,
-                    up_position=15,
-                    down_position=9,
-                    hold_time=10,
-                    reverse_positions=11,        
-                ),
+            **dict.fromkeys(
+                ["blliqpsj", "yiihr7zh"],  # device product_ids
+                TuyaBLEProductInfo(
+                    name="Fingerbot Plus",
+                    fingerbot=TuyaBLEFingerbotInfo(
+                        switch=2,
+                        mode=8,
+                        up_position=15,
+                        down_position=9,
+                        hold_time=10,
+                        reverse_positions=11,
+                    ),
+                )
             ),
             "yrnk7mnn":  # device product_id
             TuyaBLEProductInfo(
@@ -196,9 +198,9 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                     up_position=15,
                     down_position=9,
                     hold_time=10,
-                    reverse_positions=11,        
+                    reverse_positions=11,
                 ),
-            ),                     
+            ),
         },
     ),
     "wsdcg": TuyaBLECategoryInfo(

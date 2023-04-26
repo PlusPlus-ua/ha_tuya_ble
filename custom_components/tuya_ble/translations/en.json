@@ -131,6 +131,12 @@
         }
     },
     "options": {
+        "error": {
+            "device_not_registered": "Device is not registered in Tuya cloud",
+            "invalid_auth": "Invalid authentication",
+            "login_error": "Login error ({code}): {msg}"
+        },
+        "flow_title": "{name}",
         "step": {
             "login": {
                 "data": {

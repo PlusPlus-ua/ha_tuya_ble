@@ -164,10 +164,12 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                 ),
                 TuyaBLEBatteryMapping(dp_id=8),
             ],
-            "yiihr7zh":  # Fingerbot Plus
-            [
-                TuyaBLEBatteryMapping(dp_id=12),
-            ],
+            **dict.fromkeys(
+                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    TuyaBLEBatteryMapping(dp_id=12),
+                ],
+            ),
             "yrnk7mnn":  # Fingerbot
             [
                 TuyaBLEBatteryMapping(dp_id=12),
