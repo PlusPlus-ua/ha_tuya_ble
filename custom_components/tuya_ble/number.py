@@ -175,25 +175,27 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     ),
                 ],
             ),
-            "yrnk7mnn":  # Fingerbot
-            [
-                TuyaBLENumberMapping(
-                    dp_id=9,
-                    description=TuyaBLEDownPositionDescription(),
-                ),
-                TuyaBLENumberMapping(
-                    dp_id=10,
-                    description=TuyaBLEHoldTimeDescription(
-                        native_step=0.1,
+            **dict.fromkeys(
+                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                [
+                    TuyaBLENumberMapping(
+                        dp_id=9,
+                        description=TuyaBLEDownPositionDescription(),
                     ),
-                    coefficient=10.0,
-                    is_available=is_fingerbot_in_push_mode,
-                ),
-                TuyaBLENumberMapping(
-                    dp_id=15,
-                    description=TuyaBLEUpPositionDescription(),
-                ),
-            ],
+                    TuyaBLENumberMapping(
+                        dp_id=10,
+                        description=TuyaBLEHoldTimeDescription(
+                            native_step=0.1,
+                        ),
+                        coefficient=10.0,
+                        is_available=is_fingerbot_in_push_mode,
+                    ),
+                    TuyaBLENumberMapping(
+                        dp_id=15,
+                        description=TuyaBLEUpPositionDescription(),
+                    ),
+                ],
+            ),
         },
     ),
     "wsdcg": TuyaBLECategoryNumberMapping(

@@ -189,16 +189,18 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                     ),
                 )
             ),
-            "yrnk7mnn":  # device product_id
-            TuyaBLEProductInfo(
-                name="Fingerbot",
-                fingerbot=TuyaBLEFingerbotInfo(
-                    switch=2,
-                    mode=8,
-                    up_position=15,
-                    down_position=9,
-                    hold_time=10,
-                    reverse_positions=11,
+            **dict.fromkeys(
+                ["y6kttvd6", "yrnk7mnn"],  # device product_ids
+                TuyaBLEProductInfo(
+                    name="Fingerbot",
+                    fingerbot=TuyaBLEFingerbotInfo(
+                        switch=2,
+                        mode=8,
+                        up_position=15,
+                        down_position=9,
+                        hold_time=10,
+                        reverse_positions=11,
+                    ),
                 ),
             ),
         },
