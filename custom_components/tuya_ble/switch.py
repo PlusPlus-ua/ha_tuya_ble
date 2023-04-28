@@ -112,6 +112,25 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
     ),
     "szjqr": TuyaBLECategorySwitchMapping(
         products={
+            "3yqdo5yt":  # CubeTouch 1s
+            [
+                TuyaBLEFingerbotSwitchMapping(dp_id=1),
+                TuyaBLEReversePositionsMapping(dp_id=4),
+                    TuyaBLESwitchMapping(
+                        dp_id=9,
+                        description=SwitchEntityDescription(
+                            key="power_saving",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                    ),
+                    TuyaBLESwitchMapping(
+                        dp_id=10,
+                        description=SwitchEntityDescription(
+                            key="tap_enable",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                    ),
+            ],
             "xhf790if":  # CubeTouch II
             [
                 TuyaBLEFingerbotSwitchMapping(dp_id=1),

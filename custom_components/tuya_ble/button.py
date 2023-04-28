@@ -65,10 +65,12 @@ class TuyaBLECategoryButtonMapping:
 mapping: dict[str, TuyaBLECategoryButtonMapping] = {
     "szjqr": TuyaBLECategoryButtonMapping(
         products={
-            "xhf790if":  # CubeTouch II
-            [
-                TuyaBLEFingerbotModeMapping(dp_id=1),
-            ],
+            **dict.fromkeys(
+                ["3yqdo5yt", "xhf790if"],  # CubeTouch 1s and II
+                [
+                    TuyaBLEFingerbotModeMapping(dp_id=1),
+                ],
+            ),
             **dict.fromkeys(
                 ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
                 [

@@ -111,7 +111,13 @@ def _show_login_form(
                 user_input[CONF_COUNTRY_CODE] = country.name
                 break
 
-    def_country = pycountry.countries.get(alpha_2=flow.hass.config.country)
+    def_country_name: str | None = None
+    try:
+        def_country = pycountry.countries.get(alpha_2=flow.hass.config.country)
+        if def_country:
+            def_country_name = def_country.name
+    except:
+        pass
 
     return flow.async_show_form(
         step_id="login",
@@ -120,7 +126,7 @@ def _show_login_form(
                 vol.Required(
                     CONF_COUNTRY_CODE,
                     default=user_input.get(
-                        CONF_COUNTRY_CODE, def_country.name),
+                        CONF_COUNTRY_CODE, def_country_name),
                 ): vol.In(
                     # We don't pass a dict {code:name} because country codes can be duplicate.
                     [country.name for country in TUYA_COUNTRIES]

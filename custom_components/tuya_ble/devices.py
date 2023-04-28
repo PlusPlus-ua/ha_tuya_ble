@@ -163,6 +163,18 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
     ),
     "szjqr": TuyaBLECategoryInfo(
         products={
+            "3yqdo5yt":  # device product_id
+            TuyaBLEProductInfo(
+                name="CUBETOUCH 1s",
+                fingerbot=TuyaBLEFingerbotInfo(
+                    switch=1,
+                    mode=2,
+                    up_position=5,
+                    down_position=6,
+                    hold_time=3,
+                    reverse_positions=4,
+                ),
+            ),
             "xhf790if":  # device product_id
             TuyaBLEProductInfo(
                 name="CubeTouch II",

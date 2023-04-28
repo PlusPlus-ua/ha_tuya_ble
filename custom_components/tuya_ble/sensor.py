@@ -142,28 +142,30 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
     ),
     "szjqr": TuyaBLECategorySensorMapping(
         products={
-            "xhf790if":  # CubeTouch II
-            [
-                TuyaBLESensorMapping(
-                    dp_id=7,
-                    description=SensorEntityDescription(
-                        key="battery_charging",
-                        device_class=SensorDeviceClass.ENUM,
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                        options=[
-                            BATTERY_NOT_CHARGING,
-                            BATTERY_CHARGING,
-                            BATTERY_CHARGED,
+            **dict.fromkeys(
+                ["3yqdo5yt", "xhf790if"],  # CubeTouch 1s and II
+                [
+                    TuyaBLESensorMapping(
+                        dp_id=7,
+                        description=SensorEntityDescription(
+                            key="battery_charging",
+                            device_class=SensorDeviceClass.ENUM,
+                            entity_category=EntityCategory.DIAGNOSTIC,
+                            options=[
+                                BATTERY_NOT_CHARGING,
+                                BATTERY_CHARGING,
+                                BATTERY_CHARGED,
+                            ],
+                        ),
+                        icons=[
+                            "mdi:battery",
+                            "mdi:power-plug-battery",
+                            "mdi:battery-check",
                         ],
                     ),
-                    icons=[
-                        "mdi:battery",
-                        "mdi:power-plug-battery",
-                        "mdi:battery-check",
-                    ],
-                ),
-                TuyaBLEBatteryMapping(dp_id=8),
-            ],
+                    TuyaBLEBatteryMapping(dp_id=8),
+                ],
+            ),
             **dict.fromkeys(
                 ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
                 [

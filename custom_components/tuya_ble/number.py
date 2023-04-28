@@ -145,22 +145,24 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
     ),
     "szjqr": TuyaBLECategoryNumberMapping(
         products={
-            "xhf790if":  # CubeTouch II
-            [
-                TuyaBLEHoldTimeMapping(dp_id=3),
-                TuyaBLENumberMapping(
-                    dp_id=5,
-                    description=TuyaBLEUpPositionDescription(
-                        native_max_value=100,
+            **dict.fromkeys(
+                ["3yqdo5yt", "xhf790if"],  # CubeTouch 1s and II
+                [
+                    TuyaBLEHoldTimeMapping(dp_id=3),
+                    TuyaBLENumberMapping(
+                        dp_id=5,
+                        description=TuyaBLEUpPositionDescription(
+                            native_max_value=100,
+                        ),
                     ),
-                ),
-                TuyaBLENumberMapping(
-                    dp_id=6,
-                    description=TuyaBLEDownPositionDescription(
-                        native_min_value=0,
+                    TuyaBLENumberMapping(
+                        dp_id=6,
+                        description=TuyaBLEDownPositionDescription(
+                            native_min_value=0,
+                        ),
                     ),
-                ),
-            ],
+                ],
+            ),
             **dict.fromkeys(
                 ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
                 [
