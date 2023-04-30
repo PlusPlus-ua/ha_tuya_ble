@@ -74,22 +74,25 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
             ],
         },
     ),
-    "wsdcg": TuyaBLECategorySelectMapping(
+    "ms": TuyaBLECategorySelectMapping(
         products={
-            "ojzlzzsw":  # Soil moisture sensor
+            "ludzroix":  # Smart Lock
             [
                 TuyaBLESelectMapping(
-                    dp_id=9,
-                    description=TemperatureUnitDescription(
+                    dp_id=31,
+                    description=SelectEntityDescription(
+                        key="beep_volume",
                         options=[
-                            UnitOfTemperature.CELSIUS,
-                            UnitOfTemperature.FAHRENHEIT,
+                            "mute",
+                            "low",
+                            "normal",
+                            "high",
                         ],
-                        entity_registry_enabled_default=False,
-                    )
+                        entity_category=EntityCategory.CONFIG,
+                    ),
                 ),
-            ],
-        },
+            ]
+        }
     ),
     "szjqr": TuyaBLECategorySelectMapping(
         products={
@@ -106,11 +109,28 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn"],  # Fingerbot
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=8),
                 ],
             ),
+        },
+    ),
+    "wsdcg": TuyaBLECategorySelectMapping(
+        products={
+            "ojzlzzsw":  # Soil moisture sensor
+            [
+                TuyaBLESelectMapping(
+                    dp_id=9,
+                    description=TemperatureUnitDescription(
+                        options=[
+                            UnitOfTemperature.CELSIUS,
+                            UnitOfTemperature.FAHRENHEIT,
+                        ],
+                        entity_registry_enabled_default=False,
+                    )
+                ),
+            ],
         },
     ),
 }

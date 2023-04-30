@@ -30,3 +30,17 @@ and this project adheres to [Semantic Versioning].
 ### Changed
 
 - Changed a way to obtain device credentials from Tuya IOT cloud, possible fix to (#2)
+
+## [0.1.4] - 2023-04-30
+
+### Added
+
+- Added support of CUBETOUCH 1s, thanks @damiano75
+- Added new product_ids for Fingerbot.
+- Added new product_ids for Fingerbot Plus.
+- First attempt to support Smart Lock device.
+
+### Fixed
+
+- Fixed possible disconnect of BLE device.
+

@@ -161,6 +161,14 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
             ),
         },
     ),
+    "ms": TuyaBLECategoryInfo(
+        products={
+            "ludzroix":  # device product_id
+            TuyaBLEProductInfo(
+                name="Smart Lock",
+            ),
+        },
+    ),
     "szjqr": TuyaBLECategoryInfo(
         products={
             "3yqdo5yt":  # device product_id
@@ -202,7 +210,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                 )
             ),
             **dict.fromkeys(
-                ["y6kttvd6", "yrnk7mnn"],  # device product_ids
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn"],  # device product_ids
                 TuyaBLEProductInfo(
                     name="Fingerbot",
                     fingerbot=TuyaBLEFingerbotInfo(

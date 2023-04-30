@@ -79,7 +79,7 @@ def is_fingerbot_in_push_mode(
     self: TuyaBLENumber,
     product: TuyaBLEProductInfo
 ) -> bool:
-    result: bool = False
+    result: bool = True
     if product.fingerbot:
         datapoint = self._device.datapoints[product.fingerbot.mode]
         if datapoint:
@@ -143,6 +143,24 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ],
         },
     ),
+    "ms": TuyaBLECategoryNumberMapping(
+        products={
+            "ludzroix":  # Smart Lock
+            [
+                TuyaBLENumberMapping(
+                    dp_id=8,
+                    description=NumberEntityDescription(
+                        key="residual_electricity",
+                        native_max_value=100,
+                        native_min_value=-1,
+                        native_unit_of_measurement=PERCENTAGE,
+                        native_step=1,
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                ),
+            ]
+        }
+    ),
     "szjqr": TuyaBLECategoryNumberMapping(
         products={
             **dict.fromkeys(
@@ -178,7 +196,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn"],  # Fingerbot
                 [
                     TuyaBLENumberMapping(
                         dp_id=9,

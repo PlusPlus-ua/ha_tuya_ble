@@ -40,7 +40,7 @@ def is_fingerbot_in_push_mode(
     self: TuyaBLEButton,
     product: TuyaBLEProductInfo
 ) -> bool:
-    result: bool = False
+    result: bool = True
     if product.fingerbot:
         datapoint = self._device.datapoints[product.fingerbot.mode]
         if datapoint:
@@ -78,7 +78,7 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn"],  # Fingerbot
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=2),
                 ],

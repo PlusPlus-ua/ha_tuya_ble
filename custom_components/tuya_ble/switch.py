@@ -42,7 +42,7 @@ def is_fingerbot_in_switch_mode(
     self: TuyaBLESwitch,
     product: TuyaBLEProductInfo
 ) -> bool:
-    result: bool = False
+    result: bool = True
     if product.fingerbot:
         datapoint = self._device.datapoints[product.fingerbot.mode]
         if datapoint:
@@ -110,32 +110,28 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             ],
         },
     ),
+    "ms": TuyaBLECategorySwitchMapping(
+        products={
+            "ludzroix":  # Smart Lock
+            [
+                TuyaBLESwitchMapping(
+                    dp_id=47,
+                    description=SwitchEntityDescription(
+                        key="lock_motor_state",
+                    ),
+                ),
+            ]
+        }
+    ),
     "szjqr": TuyaBLECategorySwitchMapping(
         products={
-            "3yqdo5yt":  # CubeTouch 1s
-            [
-                TuyaBLEFingerbotSwitchMapping(dp_id=1),
-                TuyaBLEReversePositionsMapping(dp_id=4),
-                    TuyaBLESwitchMapping(
-                        dp_id=9,
-                        description=SwitchEntityDescription(
-                            key="power_saving",
-                            entity_category=EntityCategory.CONFIG,
-                        ),
-                    ),
-                    TuyaBLESwitchMapping(
-                        dp_id=10,
-                        description=SwitchEntityDescription(
-                            key="tap_enable",
-                            entity_category=EntityCategory.CONFIG,
-                        ),
-                    ),
-            ],
-            "xhf790if":  # CubeTouch II
-            [
-                TuyaBLEFingerbotSwitchMapping(dp_id=1),
-                TuyaBLEReversePositionsMapping(dp_id=4),
-            ],
+            **dict.fromkeys(
+                ["3yqdo5yt", "xhf790if"],  # CubeTouch 1s and II
+                [
+                    TuyaBLEFingerbotSwitchMapping(dp_id=1),
+                    TuyaBLEReversePositionsMapping(dp_id=4),
+                ],
+            ),
             **dict.fromkeys(
                 ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
                 [
@@ -152,7 +148,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["y6kttvd6", "yrnk7mnn"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn"],  # Fingerbot
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),

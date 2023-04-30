@@ -171,16 +171,16 @@ class TuyaBLEOptionsFlow(OptionsFlowWithConfigEntry):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the Tuya IOT platform login step."""
-        data: dict[str, Any] | None = None
         errors: dict[str, str] = {}
         placeholders: dict[str, Any] = {}
         credentials: TuyaBLEDeviceCredentials | None = None
         address: str | None = self.config_entry.data.get(CONF_ADDRESS)
 
         if user_input is not None:
-            entry: TuyaBLEData = self.hass.data[DOMAIN][
-                self.config_entry.entry_id
-            ]
+            entry: TuyaBLEData | None = None
+            domain_data = self.hass.data.get(DOMAIN)
+            if domain_data:
+                entry = domain_data.get(self.config_entry.entry_id)
             if entry:
                 login_data = await _try_login(
                     entry.manager,

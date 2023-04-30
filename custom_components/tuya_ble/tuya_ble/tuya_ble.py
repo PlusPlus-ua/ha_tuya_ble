@@ -14,12 +14,10 @@ from bleak.exc import BleakDBusError
 from bleak_retry_connector import BLEAK_BACKOFF_TIME
 from bleak_retry_connector import BLEAK_RETRY_EXCEPTIONS
 from bleak_retry_connector import (
-    DEFAULT_ATTEMPTS,
     BleakClientWithServiceCache,
     BleakError,
     BleakNotFoundError,
-    establish_connection,
-    retry_bluetooth_connection_error,
+    establish_connection
 )
 from Crypto.Cipher import AES
 
@@ -208,6 +206,8 @@ class TuyaBLEDataPoints:
         else:
             await self._owner._send_datapoints([dp_id])
 
+
+global_connect_lock = asyncio.Lock()
 
 class TuyaBLEDevice:
     def __init__(
@@ -561,6 +561,7 @@ class TuyaBLEDevice:
 
     async def _ensure_connected(self) -> None:
         """Ensure connection to device is established."""
+        global global_connect_lock
         if self._connect_lock.locked():
             _LOGGER.debug(
                 "%s: Connection already in progress,"
@@ -585,17 +586,18 @@ class TuyaBLEDevice:
                         self.rssi
                     )
                     raise BleakNotFoundError()
-                _LOGGER.debug("%s: Connecting; RSSI: %s",
-                              self.address, self.rssi)
                 try:
-                    client = await establish_connection(
-                        BleakClientWithServiceCache,
-                        self._ble_device,
-                        self.address,
-                        self._disconnected,
-                        use_services_cache=True,
-                        ble_device_callback=lambda: self._ble_device,
-                    )
+                    async with global_connect_lock:
+                        _LOGGER.debug("%s: Connecting; RSSI: %s",
+                                    self.address, self.rssi)
+                        client = await establish_connection(
+                            BleakClientWithServiceCache,
+                            self._ble_device,
+                            self.address,
+                            self._disconnected,
+                            use_services_cache=True,
+                            ble_device_callback=lambda: self._ble_device,
+                        )
                 except BleakNotFoundError:
                     _LOGGER.error(
                         "%s: device not found, not in range, or poor RSSI: %s",
@@ -711,7 +713,7 @@ class TuyaBLEDevice:
                 self.address
             )
 
-    async def _reconnect(self, use_delay: bool = True) -> None:
+    async def _reconnect(self) -> None:
         """Attempt a reconnect"""
         _LOGGER.debug("%s: Reconnect, ensuring connection", self.address)
         async with self._seq_num_lock:
@@ -727,7 +729,7 @@ class TuyaBLEDevice:
             )
             await asyncio.sleep(BLEAK_BACKOFF_TIME)
             _LOGGER.debug("%s: Reconnecting again", self.address)
-            asyncio.create_task(self._reconnect(False))
+            asyncio.create_task(self._reconnect())
 
     @staticmethod
     def _calc_crc16(data: bytes) -> int:
@@ -824,34 +826,6 @@ class TuyaBLEDevice:
 
         return command
 
-    # @retry_bluetooth_connection_error(DEFAULT_ATTEMPTS)
-    async def _send_packets_locked(self, packets: list[bytes]) -> None:
-        """Send command to device and read response."""
-        try:
-            await self._int_send_packets_locked(packets)
-        except BleakDBusError as ex:
-            # Disconnect so we can reset state and try again
-            await asyncio.sleep(BLEAK_BACKOFF_TIME)
-            _LOGGER.debug(
-                "%s: RSSI: %s; Backing off %ss; " "Disconnecting due to error: %s",
-                self.address,
-                self.rssi,
-                BLEAK_BACKOFF_TIME,
-                ex,
-            )
-            await self._execute_disconnect()
-            raise BleakError from ex
-        except BleakError as ex:
-            # Disconnect so we can reset state and try again
-            _LOGGER.debug(
-                "%s: RSSI: %s; Disconnecting due to error: %s",
-                self.address,
-                self.rssi,
-                ex,
-            )
-            await self._execute_disconnect()
-            raise
-
     async def _get_seq_num(self) -> int:
         async with self._seq_num_lock:
             result = self._current_seq_num
@@ -876,8 +850,8 @@ class TuyaBLEDevice:
         response_to: int,
     ) -> None:
         """Send response to received packet."""
-        await self._ensure_connected()
-        await self._send_packet_while_connected(code, data, response_to, False)
+        if self._client and self._client.is_connected:
+            await self._send_packet_while_connected(code, data, response_to, False)
 
     async def _send_packet_while_connected(
         self,
@@ -889,6 +863,48 @@ class TuyaBLEDevice:
     ) -> bool:
         """Send packet to device and optional read response."""
         result = True
+        future: asyncio.Future | None = None
+        seq_num = await self._get_seq_num()
+        if wait_for_response:
+            future = asyncio.Future()
+            self._input_expected_responses[seq_num] = future
+
+        if response_to > 0:
+            _LOGGER.debug(
+                "%s: Sending packet: #%s %s in response to #%s",
+                self.address,
+                seq_num,
+                code.name,
+                response_to,
+            )
+        else:
+            _LOGGER.debug(
+                "%s: Sending packet: #%s %s",
+                self.address,
+                seq_num,
+                code.name,
+            )
+        packets: list[bytes] = self._build_packets(
+            seq_num, code, data, response_to
+        )
+        await self._int_send_packet_while_connected(packets)
+        if future:
+            try:
+                await asyncio.wait_for(future, RESPONSE_WAIT_TIMEOUT)
+            except asyncio.TimeoutError:
+                _LOGGER.error(
+                    "%s: timeout receiving response, RSSI: %s",
+                    self.address,
+                    self.rssi,
+                )
+                result = False
+            self._input_expected_responses.pop(seq_num, None)
+
+        return result
+
+    async def _int_send_packet_while_connected(self,
+        packets: list[bytes],
+    ) -> None:
         if self._operation_lock.locked():
             _LOGGER.debug(
                 "%s: Operation already in progress, "
@@ -898,45 +914,10 @@ class TuyaBLEDevice:
             )
         async with self._operation_lock:
             try:
-                future: asyncio.Future | None = None
-                seq_num = await self._get_seq_num()
-                if wait_for_response:
-                    future = asyncio.Future()
-                    self._input_expected_responses[seq_num] = future
-
-                if response_to > 0:
-                    _LOGGER.debug(
-                        "%s: Sending packet: #%s %s in response to #%s",
-                        self.address,
-                        seq_num,
-                        code.name,
-                        response_to,
-                    )
-                else:
-                    _LOGGER.debug(
-                        "%s: Sending packet: #%s %s",
-                        self.address,
-                        seq_num,
-                        code.name,
-                    )
-                packets: list[bytes] = self._build_packets(
-                    seq_num, code, data, response_to
-                )
                 await self._send_packets_locked(packets)
-                if future:
-                    try:
-                        await asyncio.wait_for(future, RESPONSE_WAIT_TIMEOUT)
-                    except asyncio.TimeoutError:
-                        _LOGGER.error(
-                            "%s: timeout receiving response, RSSI: %s",
-                            self.address,
-                            self.rssi,
-                        )
-                        result = False
-                    self._input_expected_responses.pop(seq_num, None)
             except BleakNotFoundError:
                 _LOGGER.error(
-                    "%s: device not found, no longer in range, " "or poor RSSI: %s",
+                    "%s: device not found, no longer in range, or poor RSSI: %s",
                     self.address,
                     self.rssi,
                     exc_info=True,
@@ -950,7 +931,44 @@ class TuyaBLEDevice:
                 )
                 raise
 
-            return result
+    async def _resend_packets(self, packets: list[bytes]) -> None:
+        await self._ensure_connected()
+        await self._int_send_packet_while_connected(packets)
+
+    async def _send_packets_locked(self, packets: list[bytes]) -> None:
+        """Send command to device and read response."""
+        try:
+            await self._int_send_packets_locked(packets)
+        except BleakDBusError as ex:
+            # Disconnect so we can reset state and try again
+            await asyncio.sleep(BLEAK_BACKOFF_TIME)
+            _LOGGER.debug(
+                "%s: RSSI: %s; Backing off %ss; Disconnecting due to error: %s",
+                self.address,
+                self.rssi,
+                BLEAK_BACKOFF_TIME,
+                ex,
+            )
+            if self._is_paired:
+                asyncio.create_task(self._resend_packets(packets))
+            else:
+                asyncio.create_task(self._reconnect())
+            #await self._execute_disconnect()
+            raise BleakError from ex
+        except BleakError as ex:
+            # Disconnect so we can reset state and try again
+            _LOGGER.debug(
+                "%s: RSSI: %s; Disconnecting due to error: %s",
+                self.address,
+                self.rssi,
+                ex,
+            )
+            if self._is_paired:
+                asyncio.create_task(self._resend_packets(packets))
+            else:
+                asyncio.create_task(self._reconnect())
+            #await self._execute_disconnect()
+            raise
 
     async def _int_send_packets_locked(self, packets: list[bytes]) -> None:
         """Execute command and read response."""
