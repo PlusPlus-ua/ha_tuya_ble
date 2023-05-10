@@ -148,7 +148,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # Fingerbot
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),

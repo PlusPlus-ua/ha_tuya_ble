@@ -210,7 +210,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                 )
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq"],  # device product_ids
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # device product_ids
                 TuyaBLEProductInfo(
                     name="Fingerbot",
                     fingerbot=TuyaBLEFingerbotInfo(

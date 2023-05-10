@@ -21,7 +21,7 @@ The integration works locally, but connection to Tuya BLE device requires device
 ## Supported devices list
 
 * Fingerbots (category_id 'szjqr')
-  + Fingerbot (product_ids 'ltak7e1p', 'yrnk7mnn'), original device, first in category, powered by CR2 battery.
+  + Fingerbot (product_ids 'ltak7e1p', 'yrnk7mnn', 'nvr2rocq'), original device, first in category, powered by CR2 battery.
   + Adaprox Fingerbot (product_id 'y6kttvd6'), built-in battery with USB type C charging.
   + Fingerbot Plus (product_ids 'blliqpsj', 'yiihr7zh'), almost same as original, has sensor button for manual control.
   + CubeTouch 1s (product_id '3yqdo5yt'), built-in battery with USB type C charging.
