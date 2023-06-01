@@ -62,6 +62,8 @@ class TuyaBLEDataPoint:
     ) -> None:
         self._owner = owner
         self._id = id
+        self._value = value
+        self._changed_by_device = False
         self._update_from_device(timestamp, flags, type, value)
 
     def _update_from_device(
@@ -74,6 +76,7 @@ class TuyaBLEDataPoint:
         self._timestamp = timestamp
         self._flags = flags
         self._type = type
+        self._changed_by_device = self._value != value
         self._value = value
 
     def _get_value(self) -> bytes:
@@ -113,6 +116,10 @@ class TuyaBLEDataPoint:
     @property
     def value(self) -> bytes | bool | int | str:
         return self._value
+    
+    @property
+    def changed_by_device(self) -> bool:
+        return self._changed_by_device
 
     async def set_value(self, value: bytes | bool | int | str) -> None:
         match self._type:
@@ -132,6 +139,7 @@ class TuyaBLEDataPoint:
             case TuyaBLEDataPointType.DT_STRING:
                 self._value = str(value)
 
+        self._changed_by_device = False
         await self._owner._update_from_user(self._id)
 
 
@@ -1202,7 +1210,6 @@ class TuyaBLEDevice:
         length: int
         seq_num, response_to, _code, length = unpack(">IIHH", raw[:12])
 
-        code: TuyaBLECode = TuyaBLECode(_code)
         data_end_pos = length + 12
         raw_length = len(raw)
         if raw_length < data_end_pos:
@@ -1216,6 +1223,21 @@ class TuyaBLEDevice:
             if calc_crc != data_crc:
                 raise TuyaBLEDataCRCError()
         data = raw[12:data_end_pos]
+
+        code: TuyaBLECode
+        try:
+          code = TuyaBLECode(_code)
+        except ValueError:
+            _LOGGER.debug(
+                "%s: Received unknown message: #%s %x, response to #%s, data %s",
+                self.address,
+                seq_num,
+                _code,
+                response_to,
+                data.hex(),
+            )
+            return
+
 
         if response_to != 0:
             _LOGGER.debug(

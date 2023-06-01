@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import logging
+from homeassistant.const import CONF_ADDRESS, CONF_DEVICE_ID
 
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
@@ -25,6 +26,7 @@ from .cloud import HASSTuyaBLEDeviceManager
 from .const import (
     DEVICE_DEF_MANUFACTURER,
     DOMAIN,
+    FINGERBOT_BUTTON_EVENT,
     SET_DISCONNECTED_DELAY,
 )
 
@@ -39,6 +41,7 @@ class TuyaBLEFingerbotInfo:
     down_position: int
     hold_time: int
     reverse_positions: int
+    manual_control: int = 0
 
 
 @dataclass
@@ -112,10 +115,22 @@ class TuyaBLECoordinator(DataUpdateCoordinator[None]):
             self.async_update_listeners()
 
     @callback
-    def _async_handle_update(self, update: list[TuyaBLEDataPoint]) -> None:
+    def _async_handle_update(self, updates: list[TuyaBLEDataPoint]) -> None:
         """Just trigger the callbacks."""
         self._async_handle_connect()
         self.async_set_updated_data(None)
+        info = get_device_product_info(self._device)
+        if info.fingerbot and info.fingerbot.manual_control != 0:
+            for update in updates:
+                if (update.id == info.fingerbot.switch and
+                    update.changed_by_device):
+                    self.hass.bus.fire(
+                        FINGERBOT_BUTTON_EVENT, 
+                        {
+                            CONF_ADDRESS: self._device.address,
+                            CONF_DEVICE_ID: self._device.device_id,
+                        },
+                    )
 
     @callback
     def _set_disconnected(self, _: None) -> None:
@@ -206,6 +221,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                         down_position=9,
                         hold_time=10,
                         reverse_positions=11,
+                        manual_control=17,
                     ),
                 )
             ),
@@ -222,6 +238,14 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                         reverse_positions=11,
                     ),
                 ),
+            ),
+        },
+    ),
+    "wk": TuyaBLECategoryInfo(
+        products={
+            "drlajpqc":  # device product_id
+            TuyaBLEProductInfo(
+                name="Thermostatic Radiator Valve",
             ),
         },
     ),

@@ -13,7 +13,6 @@ SET_DISCONNECTED_DELAY = 10 * 60
 
 CONF_UUID: Final = "uuid"
 CONF_LOCAL_KEY: Final = "local_key"
-CONF_DEVICE_ID: Final = "device_id"
 CONF_CATEGORY: Final = "category"
 CONF_PRODUCT_ID: Final = "product_id"
 CONF_DEVICE_NAME: Final = "device_name"
@@ -37,4 +36,5 @@ CO2_LEVEL_ALARM: Final = "alarm"
 
 FINGERBOT_MODE_PUSH: Final = "push"
 FINGERBOT_MODE_SWITCH: Final = "switch"
+FINGERBOT_BUTTON_EVENT: Final = "fingerbot_button_pressed"
 

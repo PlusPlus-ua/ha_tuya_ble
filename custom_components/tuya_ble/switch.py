@@ -156,6 +156,49 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             ),
         },
     ),
+    "wk": TuyaBLECategorySwitchMapping(
+        products={
+            "drlajpqc":  # Thermostatic Radiator Valve
+            [
+                TuyaBLESwitchMapping(
+                    dp_id=8,
+                    description=SwitchEntityDescription(
+                        key="window_check",
+                        icon="mdi:window-closed",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=False,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=10,
+                    description=SwitchEntityDescription(
+                        key="antifreeze",
+                        icon="mdi:snowflake-off",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=False,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=40,
+                    description=SwitchEntityDescription(
+                        key="child_lock",
+                        icon="mdi:account-lock",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=False,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=130,
+                    description=SwitchEntityDescription(
+                        key="water_scale_proof",
+                        icon="mdi:water-check",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=False,
+                    ),
+                ),
+            ],
+        },
+    ),
     "wsdcg": TuyaBLECategorySwitchMapping(
         products={
             "ojzlzzsw":  # Soil moisture sensor

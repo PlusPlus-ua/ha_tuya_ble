@@ -7,7 +7,8 @@ from dataclasses import dataclass
 import json
 from typing import Any, Iterable
 
-from homeassistant.const import CONF_ADDRESS
+from homeassistant.const import CONF_ADDRESS, CONF_DEVICE_ID
+from homeassistant.core import HomeAssistant
 from homeassistant.components.tuya.const import (
     CONF_ACCESS_ID,
     CONF_ACCESS_SECRET,
@@ -21,6 +22,8 @@ from homeassistant.components.tuya.const import (
     TUYA_RESPONSE_RESULT,
     TUYA_RESPONSE_SUCCESS,
 )
+from homeassistant.helpers.entity import DeviceInfo, EntityDescription
+from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
 
 from tuya_iot import (
     TuyaOpenAPI,
@@ -29,17 +32,12 @@ from tuya_iot import (
     TuyaDeviceManager,
 )
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityDescription
-from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
-
 from .tuya_ble import AbstaractTuyaBLEDeviceManager, TuyaBLEDevice, TuyaBLEDeviceCredentials
 
 from .const import (
     CONF_PRODUCT_MODEL,
     CONF_UUID,
     CONF_LOCAL_KEY,
-    CONF_DEVICE_ID,
     CONF_CATEGORY,
     CONF_PRODUCT_ID,
     CONF_DEVICE_NAME,
@@ -179,23 +177,25 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                         item.api.get,
                         TUYA_API_FACTORY_INFO_URL % (device.get("id")),
                     )
-                    factory_info = fi_response[TUYA_RESPONSE_RESULT][0]
-                    if TUYA_FACTORY_INFO_MAC in factory_info:
-                        mac = ':'.join(
-                            factory_info[TUYA_FACTORY_INFO_MAC][i:i + 2]
-                            for i in range(0, 12, 2)
-                        ).upper()
-                        item.credentials[mac] = {
-                            CONF_ADDRESS: mac,
-                            CONF_UUID: device.get("uuid"),
-                            CONF_LOCAL_KEY: device.get("local_key"),
-                            CONF_DEVICE_ID: device.get("id"),
-                            CONF_CATEGORY: device.get("category"),
-                            CONF_PRODUCT_ID: device.get("product_id"),
-                            CONF_DEVICE_NAME: device.get("name"),
-                            CONF_PRODUCT_MODEL: device.get("model"),
-                            CONF_PRODUCT_NAME: device.get("product_name"),
-                        }
+                    fi_response_result = fi_response.get(TUYA_RESPONSE_RESULT)
+                    if fi_response_result and len(fi_response_result) > 0:
+                        factory_info = fi_response_result[0]
+                        if factory_info and (TUYA_FACTORY_INFO_MAC in factory_info):
+                            mac = ':'.join(
+                                factory_info[TUYA_FACTORY_INFO_MAC][i:i + 2]
+                                for i in range(0, 12, 2)
+                            ).upper()
+                            item.credentials[mac] = {
+                                CONF_ADDRESS: mac,
+                                CONF_UUID: device.get("uuid"),
+                                CONF_LOCAL_KEY: device.get("local_key"),
+                                CONF_DEVICE_ID: device.get("id"),
+                                CONF_CATEGORY: device.get("category"),
+                                CONF_PRODUCT_ID: device.get("product_id"),
+                                CONF_DEVICE_NAME: device.get("name"),
+                                CONF_PRODUCT_MODEL: device.get("model"),
+                                CONF_PRODUCT_NAME: device.get("product_name"),
+                            }
 
     async def build_cache(self) -> None:
         global _cache

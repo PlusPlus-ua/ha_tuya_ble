@@ -12,7 +12,7 @@ from homeassistant.components.number import (
 )
 from homeassistant.components.number.const import NumberMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION, PERCENTAGE, TIME_MINUTES, TIME_SECONDS
+from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION, PERCENTAGE, TIME_MINUTES, TIME_SECONDS, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -218,6 +218,25 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ),
         },
     ),
+    "wk": TuyaBLECategoryNumberMapping(
+        products={
+            "drlajpqc":  # Thermostatic Radiator Valve
+            [
+                TuyaBLENumberMapping(
+                    dp_id=17,
+                    description=NumberEntityDescription(
+                        key="temperature_calibration",
+                        icon="mdi:thermometer-lines",
+                        native_max_value=6,
+                        native_min_value=-6,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        native_step=1,
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                ),
+            ],
+        },
+    ),    
     "wsdcg": TuyaBLECategoryNumberMapping(
         products={
             "ojzlzzsw":  # Soil moisture sensor

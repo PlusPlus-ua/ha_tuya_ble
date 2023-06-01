@@ -20,6 +20,7 @@ from .devices import TuyaBLECoordinator, TuyaBLEData, get_device_product_info
 
 PLATFORMS: list[Platform] = [
     Platform.BUTTON,
+    Platform.CLIMATE,
     Platform.NUMBER,
     Platform.SENSOR, 
     Platform.SELECT,
