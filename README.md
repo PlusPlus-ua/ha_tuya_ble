@@ -44,7 +44,7 @@ The integration works locally, but connection to Tuya BLE device requires device
 ## Support project
 
 I am working on this integration in Ukraine. Our country was subjected to brutal aggression by Russia. The war still continues. The capital of Ukraine - Kyiv, where I live, and many other cities and villages are constantly under threat of rocket attacks. Our air defense forces are doing wonders, but they also need support. So if you want to help the development of this integration, donate some money and I will spend it to support our air defense.
-
-[**"Buy Me An Air Defense **"](https://www.buymeacoffee.com/3PaK6lXr4l)
-
-[](<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="3PaK6lXr4l" data-color="#ff0000" data-emoji="🚀" data-font="Lato" data-text="Buy me a air defense" data-outline-color="#ffffff" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>)
+<br><br>
+<p align="center">
+  <a href="https://www.buymeacoffee.com/3PaK6lXr4l"><img src="https://www.buymeacoffee.com/assets/img/custom_images/red_img.png" alt="Tuya BLE"></a>
+</p>
