@@ -1,7 +1,7 @@
 """The Tuya BLE integration."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import logging
 from typing import Callable
@@ -63,22 +63,26 @@ class TuyaBLESensorMapping:
 
 @dataclass
 class TuyaBLEBatteryMapping(TuyaBLESensorMapping):
-    description: SensorEntityDescription = SensorEntityDescription(
-        key="battery",
-        device_class=SensorDeviceClass.BATTERY,
-        native_unit_of_measurement=PERCENTAGE,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        state_class=SensorStateClass.MEASUREMENT,
+    description: SensorEntityDescription = field(
+        default_factory=lambda: SensorEntityDescription(
+            key="battery",
+            device_class=SensorDeviceClass.BATTERY,
+            native_unit_of_measurement=PERCENTAGE,
+            entity_category=EntityCategory.DIAGNOSTIC,
+            state_class=SensorStateClass.MEASUREMENT,
+        )
     )
 
 
 @dataclass
 class TuyaBLETemperatureMapping(TuyaBLESensorMapping):
-    description: SensorEntityDescription = SensorEntityDescription(
-        key="temperature",
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        state_class=SensorStateClass.MEASUREMENT,
+    description: SensorEntityDescription = field(
+        default_factory=lambda: SensorEntityDescription(
+            key="temperature",
+            device_class=SensorDeviceClass.TEMPERATURE,
+            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+            state_class=SensorStateClass.MEASUREMENT,
+        )
     )
 
 
@@ -186,13 +190,15 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
                 [
                     TuyaBLEBatteryMapping(dp_id=12),
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
+                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
+                    "5xhbk964"],  # Fingerbot
                 [
                     TuyaBLEBatteryMapping(dp_id=12),
                 ],

@@ -123,9 +123,9 @@ class TuyaBLECoordinator(DataUpdateCoordinator[None]):
         if info.fingerbot and info.fingerbot.manual_control != 0:
             for update in updates:
                 if (update.id == info.fingerbot.switch and
-                    update.changed_by_device):
+                        update.changed_by_device):
                     self.hass.bus.fire(
-                        FINGERBOT_BUTTON_EVENT, 
+                        FINGERBOT_BUTTON_EVENT,
                         {
                             CONF_ADDRESS: self._device.address,
                             CONF_DEVICE_ID: self._device.device_id,
@@ -211,7 +211,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                 ),
             ),
             **dict.fromkeys(
-                ["blliqpsj", "yiihr7zh"],  # device product_ids
+                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # device product_ids
                 TuyaBLEProductInfo(
                     name="Fingerbot Plus",
                     fingerbot=TuyaBLEFingerbotInfo(
@@ -226,7 +226,9 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                 )
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # device product_ids
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
+                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
+                    "5xhbk964"],  # device product_ids
                 TuyaBLEProductInfo(
                     name="Fingerbot",
                     fingerbot=TuyaBLEFingerbotInfo(
@@ -314,12 +316,12 @@ def get_device_info(device: TuyaBLEDevice) -> DeviceInfo | None:
         product_info = get_product_info_by_ids(
             device.category,
             device.product_id
-        )        
-    product_name : str
+        )
+    product_name: str
     if product_info:
-       product_name = product_info.name
+        product_name = product_info.name
     else:
-       product_name = device.name
+        product_name = device.name
     result = DeviceInfo(
         connections={(dr.CONNECTION_BLUETOOTH, device.address)},
         hw_version=device.hardware_version,

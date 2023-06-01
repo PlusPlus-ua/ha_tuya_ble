@@ -1,7 +1,7 @@
 """The Tuya BLE integration."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import logging
 from typing import Any, Callable
@@ -52,18 +52,22 @@ def is_fingerbot_in_switch_mode(
 
 @dataclass
 class TuyaBLEFingerbotSwitchMapping(TuyaBLESwitchMapping):
-    description: SwitchEntityDescription = SwitchEntityDescription(
-        key="switch",
+    description: SwitchEntityDescription = field(
+        default_factory=lambda: SwitchEntityDescription(
+            key="switch",
+        )
     )
     is_available: TuyaBLESwitchIsAvailable = is_fingerbot_in_switch_mode
 
 
 @dataclass
 class TuyaBLEReversePositionsMapping(TuyaBLESwitchMapping):
-    description: SwitchEntityDescription = SwitchEntityDescription(
-        key="reverse_positions",
-        icon="mdi:arrow-up-down-bold",
-        entity_category=EntityCategory.CONFIG,
+    description: SwitchEntityDescription = field(
+        default_factory=lambda: SwitchEntityDescription(
+            key="reverse_positions",
+            icon="mdi:arrow-up-down-bold",
+            entity_category=EntityCategory.CONFIG,
+        )
     )
     is_available: TuyaBLESwitchIsAvailable = is_fingerbot_in_switch_mode
 
@@ -133,7 +137,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),
@@ -148,7 +152,9 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
+                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
+                    "5xhbk964"],  # Fingerbot
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),

@@ -10,7 +10,12 @@ from homeassistant.components.climate import (
     ClimateEntityDescription,
     ClimateEntity,
 )
-from homeassistant.components.climate.const import PRESET_AWAY, PRESET_NONE, ClimateEntityFeature, HVACMode
+from homeassistant.components.climate.const import (
+    ClimateEntityFeature,
+    HVACMode,
+    PRESET_AWAY,
+    PRESET_NONE,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback

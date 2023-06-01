@@ -1,7 +1,7 @@
 """The Tuya BLE integration."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import logging
 
@@ -44,10 +44,12 @@ class TemperatureUnitDescription(SelectEntityDescription):
 
 @dataclass
 class TuyaBLEFingerbotModeMapping(TuyaBLESelectMapping):
-    description: SelectEntityDescription = SelectEntityDescription(
-        key="fingerbot_mode",
-        entity_category=EntityCategory.CONFIG,
-        options=[FINGERBOT_MODE_PUSH, FINGERBOT_MODE_SWITCH],
+    description: SelectEntityDescription = field(
+        default_factory=lambda: SelectEntityDescription(
+            key="fingerbot_mode",
+            entity_category=EntityCategory.CONFIG,
+            options=[FINGERBOT_MODE_PUSH, FINGERBOT_MODE_SWITCH],
+        )
     )
 
 
@@ -103,13 +105,15 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=8),
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
+                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
+                    "5xhbk964"],  # Fingerbot
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=8),
                 ],

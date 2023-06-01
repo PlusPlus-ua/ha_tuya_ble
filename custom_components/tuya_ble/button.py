@@ -1,7 +1,7 @@
 """The Tuya BLE integration."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import logging
 from typing import Callable
@@ -50,8 +50,10 @@ def is_fingerbot_in_push_mode(
 
 @dataclass
 class TuyaBLEFingerbotModeMapping(TuyaBLEButtonMapping):
-    description: ButtonEntityDescription = ButtonEntityDescription(
-        key="push",
+    description: ButtonEntityDescription = field(
+        default_factory=lambda: ButtonEntityDescription(
+            key="push",
+        )
     )
     is_available: TuyaBLEButtonIsAvailable = is_fingerbot_in_push_mode
 
@@ -72,13 +74,15 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=2),
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
+                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
+                    "5xhbk964"],  # Fingerbot
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=2),
                 ],

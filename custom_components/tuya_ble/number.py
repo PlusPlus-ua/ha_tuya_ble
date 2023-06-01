@@ -1,7 +1,7 @@
 """The Tuya BLE integration."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import logging
 from typing import Any, Callable
@@ -100,7 +100,9 @@ class TuyaBLEHoldTimeDescription(NumberEntityDescription):
 
 @dataclass
 class TuyaBLEHoldTimeMapping(TuyaBLENumberMapping):
-    description: NumberEntityDescription = TuyaBLEHoldTimeDescription()
+    description: NumberEntityDescription = field(
+        default_factory=lambda: TuyaBLEHoldTimeDescription()
+    )
     is_available: TuyaBLENumberIsAvailable = is_fingerbot_in_push_mode
 
 
@@ -182,7 +184,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "yiihr7zh"],  # Fingerbot Plus
+                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
                 [
                     TuyaBLENumberMapping(
                         dp_id=9,
@@ -196,7 +198,9 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn", "nvr2rocq", "bnt7wajf"],  # Fingerbot
+                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
+                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
+                    "5xhbk964"],  # Fingerbot
                 [
                     TuyaBLENumberMapping(
                         dp_id=9,
@@ -236,7 +240,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 ),
             ],
         },
-    ),    
+    ),
     "wsdcg": TuyaBLECategoryNumberMapping(
         products={
             "ojzlzzsw":  # Soil moisture sensor
