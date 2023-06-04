@@ -270,14 +270,6 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
                 if datapoint:
                     self._hass.create_task(datapoint.set_value(bool_value))
 
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        result = super().available
-        if result and self._mapping.is_available:
-            result = self._mapping.is_available(self, self._product)
-        return result
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
