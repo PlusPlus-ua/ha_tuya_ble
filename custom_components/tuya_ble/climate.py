@@ -75,7 +75,7 @@ mapping: dict[str, TuyaBLECategoryClimateMapping] = {
                     ),
                     hvac_switch_dp_id=17,
                     hvac_switch_mode=HVACMode.HEAT,
-                    preset_mode_dp_ids={PRESET_AWAY: 106},
+                    #preset_mode_dp_ids={PRESET_AWAY: 106},
                     current_temperature_dp_id=102,
                     current_temperature_coefficient=10.0,
                     target_temperature_dp_id=103,
