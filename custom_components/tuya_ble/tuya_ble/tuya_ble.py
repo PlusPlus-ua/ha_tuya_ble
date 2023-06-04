@@ -621,6 +621,13 @@ class TuyaBLEDevice:
                         exc_info=True
                     )
                     continue
+                except:
+                    _LOGGER.debug(
+                        "%s: unexpected error",
+                        self.address,
+                        exc_info=True
+                    )
+                    continue
 
                 if client and client.is_connected:
                     _LOGGER.debug("%s: Connected; RSSI: %s",
