@@ -122,6 +122,7 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
             mapping.description
         )
         self._mapping = mapping
+        self._attr_hvac_mode = HVACMode.OFF
 
         if mapping.hvac_mode_dp_id and mapping.hvac_modes:
             self._attr_hvac_modes = mapping.hvac_modes
