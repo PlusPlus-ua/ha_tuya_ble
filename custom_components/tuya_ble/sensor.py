@@ -44,9 +44,7 @@ _LOGGER = logging.getLogger(__name__)
 SIGNAL_STRENGTH_DP_ID = -1
 
 
-TuyaBLESensorIsAvailable = Callable[
-    ['TuyaBLESensor', TuyaBLEProductInfo], bool
-] | None
+TuyaBLESensorIsAvailable = Callable[["TuyaBLESensor", TuyaBLEProductInfo], bool] | None
 
 
 @dataclass
@@ -86,10 +84,7 @@ class TuyaBLETemperatureMapping(TuyaBLESensorMapping):
     )
 
 
-def is_co2_alarm_enabled(
-    self: TuyaBLESensor,
-    product: TuyaBLEProductInfo
-) -> bool:
+def is_co2_alarm_enabled(self: TuyaBLESensor, product: TuyaBLEProductInfo) -> bool:
     result: bool = True
     datapoint = self._device.datapoints[13]
     if datapoint:
@@ -106,8 +101,7 @@ class TuyaBLECategorySensorMapping:
 mapping: dict[str, TuyaBLECategorySensorMapping] = {
     "co2bj": TuyaBLECategorySensorMapping(
         products={
-            "59s19z5m":  # CO2 Detector
-            [
+            "59s19z5m": [  # CO2 Detector
                 TuyaBLESensorMapping(
                     dp_id=1,
                     description=SensorEntityDescription(
@@ -146,8 +140,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
     ),
     "ms": TuyaBLECategorySensorMapping(
         products={
-            "ludzroix":  # Smart Lock
-            [
+            "ludzroix": [  # Smart Lock
                 TuyaBLESensorMapping(
                     dp_id=21,
                     description=SensorEntityDescription(
@@ -196,9 +189,15 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["ltak7e1p", "y6kttvd6", "yrnk7mnn",
-                    "nvr2rocq", "bnt7wajf", "rvdceqjh",
-                    "5xhbk964"],  # Fingerbot
+                [
+                    "ltak7e1p",
+                    "y6kttvd6",
+                    "yrnk7mnn",
+                    "nvr2rocq",
+                    "bnt7wajf",
+                    "rvdceqjh",
+                    "5xhbk964",
+                ],  # Fingerbot
                 [
                     TuyaBLEBatteryMapping(dp_id=12),
                 ],
@@ -207,8 +206,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
     ),
     "wsdcg": TuyaBLECategorySensorMapping(
         products={
-            "ojzlzzsw":  # Soil moisture sensor
-            [
+            "ojzlzzsw": [  # Soil moisture sensor
                 TuyaBLETemperatureMapping(
                     dp_id=1,
                     coefficient=10.0,
@@ -245,6 +243,25 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
             ],
         },
     ),
+    # "wk": TuyaBLECategorySensorMapping(
+    #     products={
+    #         "drlajpqc": [  # Thermostatic Radiator Valve
+    #             TuyaBLESensorMapping(
+    #                 dp_id=105,
+    #                 description=SensorEntityDescription(
+    #                     key="low_battery",
+    #                     icon="mdi:battery-alert",
+    #                     device_class=SensorDeviceClass.BATTERY,
+    #                     entity_category=EntityCategory.DIAGNOSTIC,
+    #                     options=[
+    #                         BATTERY_STATE_LOW,
+    #                         BATTERY_STATE_NORMAL,
+    #                     ],
+    #                 ),
+    #             ),
+    #         ],
+    #     },
+    # ),
 }
 
 
@@ -266,9 +283,7 @@ rssi_mapping = TuyaBLESensorMapping(
 )
 
 
-def get_mapping_by_device(
-    device: TuyaBLEDevice
-) -> list[TuyaBLESensorMapping]:
+def get_mapping_by_device(device: TuyaBLEDevice) -> list[TuyaBLESensorMapping]:
     category = mapping.get(device.category)
     if category is not None and category.products is not None:
         product_mapping = category.products.get(device.product_id)
@@ -293,13 +308,7 @@ class TuyaBLESensor(TuyaBLEEntity, SensorEntity):
         product: TuyaBLEProductInfo,
         mapping: TuyaBLESensorMapping,
     ) -> None:
-        super().__init__(
-            hass,
-            coordinator,
-            device,
-            product,
-            mapping.description
-        )
+        super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
 
     @callback
@@ -312,21 +321,23 @@ class TuyaBLESensor(TuyaBLEEntity, SensorEntity):
             if datapoint:
                 if datapoint.type == TuyaBLEDataPointType.DT_ENUM:
                     if self.entity_description.options is not None:
-                        if (datapoint.value >= 0 and datapoint.value <
-                                len(self.entity_description.options)):
-                            self._attr_native_value = \
-                                self.entity_description.options[
-                                    datapoint.value]
+                        if datapoint.value >= 0 and datapoint.value < len(
+                            self.entity_description.options
+                        ):
+                            self._attr_native_value = self.entity_description.options[
+                                datapoint.value
+                            ]
                         else:
                             self._attr_native_value = datapoint.value
                     if self._mapping.icons is not None:
-                        if (datapoint.value >= 0 and datapoint.value <
-                                len(self._mapping.icons)):
-                            self._attr_icon = \
-                                self._mapping.icons[datapoint.value]
+                        if datapoint.value >= 0 and datapoint.value < len(
+                            self._mapping.icons
+                        ):
+                            self._attr_icon = self._mapping.icons[datapoint.value]
                 elif datapoint.type == TuyaBLEDataPointType.DT_VALUE:
-                    self._attr_native_value = \
+                    self._attr_native_value = (
                         datapoint.value / self._mapping.coefficient
+                    )
                 else:
                     self._attr_native_value = datapoint.value
         self.async_write_ha_state()
@@ -348,23 +359,26 @@ async def async_setup_entry(
     """Set up the Tuya BLE sensors."""
     data: TuyaBLEData = hass.data[DOMAIN][entry.entry_id]
     mappings = get_mapping_by_device(data.device)
-    entities: list[TuyaBLESensor] = [TuyaBLESensor(
-        hass,
-        data.coordinator,
-        data.device,
-        data.product,
-        rssi_mapping,
-    )]
+    entities: list[TuyaBLESensor] = [
+        TuyaBLESensor(
+            hass,
+            data.coordinator,
+            data.device,
+            data.product,
+            rssi_mapping,
+        )
+    ]
     for mapping in mappings:
-        if (
-            mapping.force_add or
-            data.device.datapoints.has_id(mapping.dp_id, mapping.dp_type)
+        if mapping.force_add or data.device.datapoints.has_id(
+            mapping.dp_id, mapping.dp_type
         ):
-            entities.append(TuyaBLESensor(
-                hass,
-                data.coordinator,
-                data.device,
-                data.product,
-                mapping,
-            ))
+            entities.append(
+                TuyaBLESensor(
+                    hass,
+                    data.coordinator,
+                    data.device,
+                    data.product,
+                    mapping,
+                )
+            )
     async_add_entities(entities)
