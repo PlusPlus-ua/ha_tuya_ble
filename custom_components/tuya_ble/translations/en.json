@@ -12,7 +12,7 @@
         "step": {
             "device": {
                 "data": {
-                    "address": "Bluetooth address"
+                    "address": "Tuya BLE device"
                 },
                 "description": "Select Tuya BLE device to setup. Device must be registered in the cloud using the mobile application. It's better to unbind the device from Tuya Bluetooth gateway, if any."
             },
@@ -136,7 +136,6 @@
             "invalid_auth": "Invalid authentication",
             "login_error": "Login error ({code}): {msg}"
         },
-        "flow_title": "{name}",
         "step": {
             "login": {
                 "data": {

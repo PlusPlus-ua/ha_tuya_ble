@@ -23,7 +23,10 @@ from homeassistant.components.tuya.const import (
     TUYA_RESPONSE_SUCCESS,
 )
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
-from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from tuya_iot import (
     TuyaOpenAPI,
@@ -32,7 +35,11 @@ from tuya_iot import (
     TuyaDeviceManager,
 )
 
-from .tuya_ble import AbstaractTuyaBLEDeviceManager, TuyaBLEDevice, TuyaBLEDeviceCredentials
+from .tuya_ble import (
+    AbstaractTuyaBLEDeviceManager,
+    TuyaBLEDevice,
+    TuyaBLEDeviceCredentials,
+)
 
 from .const import (
     CONF_PRODUCT_MODEL,
@@ -86,11 +93,7 @@ _cache: dict[str, TuyaCloudCacheItem] = {}
 class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
     """Cloud connected manager of the Tuya BLE devices credentials."""
 
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        data: dict[str, Any]
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, data: dict[str, Any]) -> None:
         assert hass is not None
         self._hass = hass
         self._data = data
@@ -181,8 +184,8 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                     if fi_response_result and len(fi_response_result) > 0:
                         factory_info = fi_response_result[0]
                         if factory_info and (TUYA_FACTORY_INFO_MAC in factory_info):
-                            mac = ':'.join(
-                                factory_info[TUYA_FACTORY_INFO_MAC][i:i + 2]
+                            mac = ":".join(
+                                factory_info[TUYA_FACTORY_INFO_MAC][i : i + 2]
                                 for i in range(0, 12, 2)
                             ).upper()
                             item.credentials[mac] = {
@@ -200,8 +203,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
     async def build_cache(self) -> None:
         global _cache
         data = {}
-        tuya_config_entries = self._hass.config_entries.async_entries(
-            TUYA_DOMAIN)
+        tuya_config_entries = self._hass.config_entries.async_entries(TUYA_DOMAIN)
         for config_entry in tuya_config_entries:
             data.clear()
             data.update(config_entry.data)

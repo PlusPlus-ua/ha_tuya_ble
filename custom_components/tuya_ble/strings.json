@@ -67,6 +67,9 @@
       }
     },
     "sensor": {
+      "low_battery": {
+        "name": "Is battery low?"
+      },
       "battery": {
         "name": "[%key:component::sensor::entity_component::battery::name%]"
       },
@@ -110,6 +113,10 @@
       }
     },
     "switch": {
+      "antifreeze": { "name": "Antifreeze" },
+      "child_lock": { "name": "Child Lock" },
+      "window_check": { "name": "Window Check" },
+      "water_scale_proof": { "name": "Anti-scale" },
       "carbon_dioxide_alarm_switch": {
         "name": "Alarm enabled"
       },
