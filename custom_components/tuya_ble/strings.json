@@ -66,10 +66,12 @@
         "name": "Temperature unit"
       }
     },
-    "sensor": {
+    "binary_sensor": {
       "low_battery": {
         "name": "Is battery low?"
-      },
+      }
+    },
+    "sensor": {
       "battery": {
         "name": "[%key:component::sensor::entity_component::battery::name%]"
       },
