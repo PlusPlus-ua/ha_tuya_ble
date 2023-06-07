@@ -25,7 +25,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
-from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
+from .tuya_ble import TuyaBLEDataPoint, TuyaBLEDataPointType, TuyaBLEDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -267,15 +267,35 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         if self._mapping.preset_mode_dp_ids:
-            for dp_id in self._mapping.preset_mode_dp_ids.values():
-                bool_value = preset_mode == PRESET_AWAY
-                datapoint = self._device.datapoints.get_or_create(
-                    dp_id,
-                    TuyaBLEDataPointType.DT_BOOL,
-                    bool_value,
-                )
-                if datapoint:
-                    self._hass.create_task(datapoint.set_value(bool_value))
+            datapoint: TuyaBLEDataPoint | None = None
+            bool_value = False
+
+            keys = self._mapping.preset_mode_dp_ids.keys()
+            values = self._mapping.preset_mode_dp_ids.values()  # Get all DP IDs
+            # TRVs with only Away and None modes can be set with a single datapoint and use a single DP ID
+            if all(values[0] == elem for elem in values) and keys[0] == PRESET_AWAY:
+                for dp_id in self._mapping.preset_mode_dp_ids.values():
+                    bool_value = preset_mode == PRESET_AWAY
+                    datapoint = self._device.datapoints.get_or_create(
+                        dp_id,
+                        TuyaBLEDataPointType.DT_BOOL,
+                        bool_value,
+                    )
+                    break
+            else:
+                if self._mapping.preset_mode_dp_ids:
+                    for (
+                        dp_preset_mode,
+                        dp_id,
+                    ) in self._mapping.preset_mode_dp_ids.items():
+                        bool_value = dp_preset_mode == preset_mode
+                        datapoint = self._device.datapoints.get_or_create(
+                            dp_id,
+                            TuyaBLEDataPointType.DT_BOOL,
+                            bool_value,
+                        )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(bool_value))
 
 
 async def async_setup_entry(
