@@ -270,11 +270,11 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
             datapoint: TuyaBLEDataPoint | None = None
             bool_value = False
 
-            keys = self._mapping.preset_mode_dp_ids.keys()
-            values = self._mapping.preset_mode_dp_ids.values()  # Get all DP IDs
+            keys = list(self._mapping.preset_mode_dp_ids.keys())
+            values = list(self._mapping.preset_mode_dp_ids.values())  # Get all DP IDs
             # TRVs with only Away and None modes can be set with a single datapoint and use a single DP ID
             if all(values[0] == elem for elem in values) and keys[0] == PRESET_AWAY:
-                for dp_id in self._mapping.preset_mode_dp_ids.values():
+                for dp_id in values:
                     bool_value = preset_mode == PRESET_AWAY
                     datapoint = self._device.datapoints.get_or_create(
                         dp_id,
