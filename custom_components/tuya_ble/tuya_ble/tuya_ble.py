@@ -1223,7 +1223,7 @@ class TuyaBLEDevice:
 
     def _notification_handler(self, _sender: int, data: bytearray) -> None:
         """Handle notification responses."""
-        # _LOGGER.debug("%s: Packet received: %s", self.address, data.hex())
+        _LOGGER.debug("%s: Packet received: %s", self.address, data.hex())
 
         pos: int = 0
         packet_num: int

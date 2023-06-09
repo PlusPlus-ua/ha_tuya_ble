@@ -243,25 +243,6 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
             ],
         },
     ),
-    # "wk": TuyaBLECategorySensorMapping(
-    #     products={
-    #         "drlajpqc": [  # Thermostatic Radiator Valve
-    #             TuyaBLESensorMapping(
-    #                 dp_id=105,
-    #                 description=SensorEntityDescription(
-    #                     key="low_battery",
-    #                     icon="mdi:battery-alert",
-    #                     device_class=SensorDeviceClass.BATTERY,
-    #                     entity_category=EntityCategory.DIAGNOSTIC,
-    #                     options=[
-    #                         BATTERY_STATE_LOW,
-    #                         BATTERY_STATE_NORMAL,
-    #                     ],
-    #                 ),
-    #             ),
-    #         ],
-    #     },
-    # ),
 }
 
 

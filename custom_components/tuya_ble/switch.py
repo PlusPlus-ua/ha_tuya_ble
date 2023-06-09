@@ -179,24 +179,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         entity_registry_enabled_default=True,
                     ),
                 ),
-                # NumberEntity(
-                #     dp_id=27,
-                #     description=NumberEntityDescription(
-                #         key="temperature_calibration",
-                #         icon="mdi:thermometer",
-                #         entity_category=EntityCategory.CONFIG,
-                #         entity_registry_enabled_default=True,
-                #     ),
-                # ),
-                # NumberEntity(
-                #     dp_id=105,
-                #     description=NumberEntityDescription(
-                #         key="low_battery",
-                #         icon="mdi:battery-alert",
-                #         entity_category=EntityCategory.CONFIG,
-                #         entity_registry_enabled_default=True,
-                #     ),
-                # ),
                 TuyaBLESwitchMapping(
                     dp_id=10,
                     description=SwitchEntityDescription(
