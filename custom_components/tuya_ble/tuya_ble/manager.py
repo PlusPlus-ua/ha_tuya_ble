@@ -16,7 +16,7 @@ class TuyaBLEDeviceCredentials:
     product_name: str | None
 
     def __str__(self):
-        print('str called')
+        print("str called")
         return (
             "uuid: xxxxxxxxxxxxxxxx, "
             "local_key: xxxxxxxxxxxxxxxx, "
@@ -33,6 +33,7 @@ class TuyaBLEDeviceCredentials:
             self.product_model,
             self.product_name,
         )
+
 
 class AbstaractTuyaBLEDeviceManager(ABC):
     """Abstaract manager of the Tuya BLE devices credentials."""
@@ -59,13 +60,7 @@ class AbstaractTuyaBLEDeviceManager(ABC):
         product_name: str | None,
     ) -> TuyaBLEDeviceCredentials | None:
         """Checks and creates credentials of the Tuya BLE device."""
-        if (
-            uuid and 
-            local_key and 
-            device_id and
-            category and
-            product_id
-        ):
+        if uuid and local_key and device_id and category and product_id:
             return TuyaBLEDeviceCredentials(
                 uuid,
                 local_key,

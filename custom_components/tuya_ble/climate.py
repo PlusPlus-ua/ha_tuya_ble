@@ -67,15 +67,14 @@ class TuyaBLECategoryClimateMapping:
 mapping: dict[str, TuyaBLECategoryClimateMapping] = {
     "wk": TuyaBLECategoryClimateMapping(
         products={
-            "drlajpqc":  # Thermostatic Radiator Valve
-            [
+            "drlajpqc": [  # Thermostatic Radiator Valve
                 TuyaBLEClimateMapping(
                     description=ClimateEntityDescription(
                         key="thermostatic_radiator_valve",
                     ),
                     hvac_switch_dp_id=17,
                     hvac_switch_mode=HVACMode.HEAT,
-                    #preset_mode_dp_ids={PRESET_AWAY: 106},
+                    # preset_mode_dp_ids={PRESET_AWAY: 106},
                     current_temperature_dp_id=102,
                     current_temperature_coefficient=10.0,
                     target_temperature_dp_id=103,
@@ -87,9 +86,7 @@ mapping: dict[str, TuyaBLECategoryClimateMapping] = {
 }
 
 
-def get_mapping_by_device(
-    device: TuyaBLEDevice
-) -> list[TuyaBLECategoryClimateMapping]:
+def get_mapping_by_device(device: TuyaBLEDevice) -> list[TuyaBLECategoryClimateMapping]:
     category = mapping.get(device.category)
     if category is not None and category.products is not None:
         product_mapping = category.products.get(device.product_id)
@@ -114,13 +111,7 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         product: TuyaBLEProductInfo,
         mapping: TuyaBLEClimateMapping,
     ) -> None:
-        super().__init__(
-            hass,
-            coordinator,
-            device,
-            product,
-            mapping.description
-        )
+        super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
         self._attr_hvac_mode = HVACMode.OFF
 
@@ -150,51 +141,47 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         """Handle updated data from the coordinator."""
 
         if self._mapping.current_temperature_dp_id != 0:
-            datapoint = self._device.datapoints[
-                self._mapping.current_temperature_dp_id
-            ]
+            datapoint = self._device.datapoints[self._mapping.current_temperature_dp_id]
             if datapoint:
-                self._attr_current_temperature = \
+                self._attr_current_temperature = (
                     datapoint.value / self._mapping.current_temperature_coefficient
+                )
 
         if self._mapping.target_temperature_dp_id != 0:
-            datapoint = self._device.datapoints[
-                self._mapping.target_temperature_dp_id
-            ]
+            datapoint = self._device.datapoints[self._mapping.target_temperature_dp_id]
             if datapoint:
-                self._attr_target_temperature = \
+                self._attr_target_temperature = (
                     datapoint.value / self._mapping.target_temperature_coefficient
+                )
 
         if self._mapping.current_humidity_dp_id != 0:
-            datapoint = self._device.datapoints[
-                self._mapping.current_humidity_dp_id
-            ]
+            datapoint = self._device.datapoints[self._mapping.current_humidity_dp_id]
             if datapoint:
-                self._attr_current_humidity = \
+                self._attr_current_humidity = (
                     datapoint.value / self._mapping.current_humidity_coefficient
+                )
 
         if self._mapping.target_humidity_dp_id != 0:
-            datapoint = self._device.datapoints[
-                self._mapping.target_humidity_dp_id
-            ]
+            datapoint = self._device.datapoints[self._mapping.target_humidity_dp_id]
             if datapoint:
-                self._attr_target_humidity = \
+                self._attr_target_humidity = (
                     datapoint.value / self._mapping.target_humidity_coefficient
+                )
 
         if self._mapping.hvac_mode_dp_id != 0 and self._mapping.hvac_modes:
-            datapoint = self._device.datapoints[
-                self._mapping.hvac_mode_dp_id
-            ]
+            datapoint = self._device.datapoints[self._mapping.hvac_mode_dp_id]
             if datapoint:
-                self._attr_hvac_mode = self._mapping.hvac_modes[datapoint.value] \
-                    if datapoint.value < len(self._mapping.hvac_modes) else None
+                self._attr_hvac_mode = (
+                    self._mapping.hvac_modes[datapoint.value]
+                    if datapoint.value < len(self._mapping.hvac_modes)
+                    else None
+                )
         elif self._mapping.hvac_switch_dp_id != 0 and self._mapping.hvac_switch_mode:
-            datapoint = self._device.datapoints[
-                self._mapping.hvac_switch_dp_id
-            ]
+            datapoint = self._device.datapoints[self._mapping.hvac_switch_dp_id]
             if datapoint:
-                self._attr_hvac_mode = self._mapping.hvac_switch_mode \
-                    if datapoint.value else HVACMode.OFF
+                self._attr_hvac_mode = (
+                    self._mapping.hvac_switch_mode if datapoint.value else HVACMode.OFF
+                )
 
         if self._mapping.preset_mode_dp_ids:
             current_preset_mode = PRESET_NONE
@@ -211,8 +198,7 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         """Set new target temperature."""
         if self._mapping.target_temperature_dp_id != 0:
             int_value = int(
-                kwargs["temperature"] *
-                self._mapping.target_humidity_coefficient
+                kwargs["temperature"] * self._mapping.target_humidity_coefficient
             )
             datapoint = self._device.datapoints.get_or_create(
                 self._mapping.target_temperature_dp_id,
@@ -225,8 +211,7 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
     async def async_set_humidity(self, humidity: int) -> None:
         """Set new target humidity."""
         if self._mapping.target_humidity_dp_id != 0:
-            int_value = int(
-                humidity * self._mapping.target_humidity_coefficient)
+            int_value = int(humidity * self._mapping.target_humidity_coefficient)
             datapoint = self._device.datapoints.get_or_create(
                 self._mapping.target_humidity_dp_id,
                 TuyaBLEDataPointType.DT_VALUE,
@@ -237,9 +222,11 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
-        if (self._mapping.hvac_mode_dp_id != 0 and
-            self._mapping.hvac_modes and
-                hvac_mode in self._mapping.hvac_modes):
+        if (
+            self._mapping.hvac_mode_dp_id != 0
+            and self._mapping.hvac_modes
+            and hvac_mode in self._mapping.hvac_modes
+        ):
             int_value = self._mapping.hvac_modes.index(hvac_mode)
             datapoint = self._device.datapoints.get_or_create(
                 self._mapping.target_humidity_dp_id,
@@ -282,11 +269,13 @@ async def async_setup_entry(
     mappings = get_mapping_by_device(data.device)
     entities: list[TuyaBLEClimate] = []
     for mapping in mappings:
-        entities.append(TuyaBLEClimate(
-            hass,
-            data.coordinator,
-            data.device,
-            data.product,
-            mapping,
-        ))
+        entities.append(
+            TuyaBLEClimate(
+                hass,
+                data.coordinator,
+                data.device,
+                data.product,
+                mapping,
+            )
+        )
     async_add_entities(entities)
