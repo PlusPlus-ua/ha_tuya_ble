@@ -89,10 +89,12 @@ async def _try_login(
 
     errors["base"] = "login_error"
     if response:
-        placeholders.update({
-            TUYA_RESPONSE_CODE: response.get(TUYA_RESPONSE_CODE),
-            TUYA_RESPONSE_MSG: response.get(TUYA_RESPONSE_MSG),
-        })
+        placeholders.update(
+            {
+                TUYA_RESPONSE_CODE: response.get(TUYA_RESPONSE_CODE),
+                TUYA_RESPONSE_MSG: response.get(TUYA_RESPONSE_MSG),
+            }
+        )
 
     return None
 
@@ -104,8 +106,7 @@ def _show_login_form(
     placeholders: dict[str, Any],
 ) -> FlowResult:
     """Shows the Tuya IOT platform login form."""
-    if (user_input is not None and
-            user_input.get(CONF_COUNTRY_CODE) is not None):
+    if user_input is not None and user_input.get(CONF_COUNTRY_CODE) is not None:
         for country in TUYA_COUNTRIES:
             if country.country_code == user_input[CONF_COUNTRY_CODE]:
                 user_input[CONF_COUNTRY_CODE] = country.name
@@ -125,27 +126,23 @@ def _show_login_form(
             {
                 vol.Required(
                     CONF_COUNTRY_CODE,
-                    default=user_input.get(
-                        CONF_COUNTRY_CODE, def_country_name),
+                    default=user_input.get(CONF_COUNTRY_CODE, def_country_name),
                 ): vol.In(
                     # We don't pass a dict {code:name} because country codes can be duplicate.
                     [country.name for country in TUYA_COUNTRIES]
                 ),
                 vol.Required(
-                    CONF_ACCESS_ID, default=user_input.get(
-                        CONF_ACCESS_ID, "")
+                    CONF_ACCESS_ID, default=user_input.get(CONF_ACCESS_ID, "")
                 ): str,
                 vol.Required(
                     CONF_ACCESS_SECRET,
                     default=user_input.get(CONF_ACCESS_SECRET, ""),
                 ): str,
                 vol.Required(
-                    CONF_USERNAME, default=user_input.get(
-                        CONF_USERNAME, "")
+                    CONF_USERNAME, default=user_input.get(CONF_USERNAME, "")
                 ): str,
                 vol.Required(
-                    CONF_PASSWORD, default=user_input.get(
-                        CONF_PASSWORD, "")
+                    CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, "")
                 ): str,
             }
         ),
@@ -291,10 +288,7 @@ class TuyaBLEConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
             discovery_info = self._discovered_devices[address]
-            local_name = await get_device_readable_name(
-                discovery_info,
-                self._manager
-            )
+            local_name = await get_device_readable_name(discovery_info, self._manager)
             await self.async_set_unique_id(
                 discovery_info.address, raise_on_progress=False
             )
@@ -345,13 +339,11 @@ class TuyaBLEConfigFlow(ConfigFlow, domain=DOMAIN):
                         default=def_address,
                     ): vol.In(
                         {
-                            service_info.address:
-                            await get_device_readable_name(
+                            service_info.address: await get_device_readable_name(
                                 service_info,
                                 self._manager,
                             )
-                            for service_info in
-                                self._discovered_devices.values()
+                            for service_info in self._discovered_devices.values()
                         }
                     ),
                 },
