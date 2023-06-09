@@ -192,15 +192,12 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
 
         if self._mapping.preset_mode_dp_ids:
             current_preset_mode = PRESET_NONE
-            try:  # This try/except is because on init we're getting error "Too many values to unpack"
-                for preset_mode, dp_id in self._mapping.preset_mode_dp_ids.items():
-                    datapoint = self._device.datapoints[dp_id]
-                    if datapoint and datapoint.value:
-                        current_preset_mode = preset_mode
-                        break
-                self._attr_preset_mode = current_preset_mode
-            except:
-                current_preset_mode = PRESET_NONE
+            for preset_mode, dp_id in self._mapping.preset_mode_dp_ids.items():
+                datapoint = self._device.datapoints[dp_id]
+                if datapoint and datapoint.value:
+                    current_preset_mode = preset_mode
+                    break
+            self._attr_preset_mode = current_preset_mode
 
         if (
             self._attr_preset_mode == PRESET_AWAY
@@ -270,8 +267,10 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
             datapoint: TuyaBLEDataPoint | None = None
             bool_value = False
 
-            keys = list(self._mapping.preset_mode_dp_ids.keys())
-            values = list(self._mapping.preset_mode_dp_ids.values())  # Get all DP IDs
+            keys = [x for x in self._mapping.preset_mode_dp_ids.keys()]
+            values = [
+                x for x in self._mapping.preset_mode_dp_ids.values()
+            ]  # Get all DP IDs
             # TRVs with only Away and None modes can be set with a single datapoint and use a single DP ID
             if all(values[0] == elem for elem in values) and keys[0] == PRESET_AWAY:
                 for dp_id in values:

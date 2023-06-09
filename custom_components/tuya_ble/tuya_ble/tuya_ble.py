@@ -1274,28 +1274,21 @@ class TuyaBLEDevice:
         data = bytearray()
         for dp_id in datapoint_ids:
             dp = self._datapoints[dp_id]
-            try:
-                value = dp._get_value()
-                print(
-                    "{}: Sending datapoint update, id: {}, type: {}: value: {}".format(
-                        self.address, dp.id, dp.type.name, dp.value
-                    )
+            value = dp._get_value()
+            print(
+                "{}: Sending datapoint update, id: {}, type: {}: value: {}".format(
+                    self.address, dp.id, dp.type.name, dp.value
                 )
-                _LOGGER.debug(
-                    "%s: Sending datapoint update, id: %s, type: %s: value: %s",
-                    self.address,
-                    dp.id,
-                    dp.type.name,
-                    dp.value,
-                )
-                data += pack(">BBB", dp.id, int(dp.type.value), len(value))
-                data += value
-            except:
-                _LOGGER.error(
-                    "%s: Failed to get value of datapoint %s",
-                    self.address,
-                    dp.id,
-                )
+            )
+            _LOGGER.debug(
+                "%s: Sending datapoint update, id: %s, type: %s: value: %s",
+                self.address,
+                dp.id,
+                dp.type.name,
+                dp.value,
+            )
+            data += pack(">BBB", dp.id, int(dp.type.value), len(value))
+            data += value
 
         await self._send_packet(TuyaBLECode.FUN_SENDER_DPS, data)
 
