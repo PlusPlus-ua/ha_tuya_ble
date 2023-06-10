@@ -234,17 +234,14 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
                     break
             self._attr_preset_mode = current_preset_mode
 
-        try:
-            if (
-                self._attr_preset_mode == PRESET_AWAY
-                or self._attr_hvac_mode == HVACMode.OFF
-                or self._attr_target_temperature <= self._attr_current_temperature
-            ):
-                self._attr_hvac_action = HVACAction.IDLE
-            else:
-                self._attr_hvac_action = HVACAction.HEATING
-        except:
-            pass
+        if (
+            self._attr_preset_mode == PRESET_AWAY
+            or self._attr_hvac_mode == HVACMode.OFF
+            or self._attr_target_temperature <= self._attr_current_temperature
+        ):
+            self._attr_hvac_action = HVACAction.IDLE
+        else:
+            self._attr_hvac_action = HVACAction.HEATING
 
         self.async_write_ha_state()
 
