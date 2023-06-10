@@ -206,6 +206,24 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         entity_registry_enabled_default=True,
                     ),
                 ),
+                TuyaBLESwitchMapping(
+                    dp_id=107,
+                    description=SwitchEntityDescription(
+                        key="programming_mode",
+                        icon="mdi:calendar-clock",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=108,
+                    description=SwitchEntityDescription(
+                        key="programming_switch",
+                        icon="mdi:calendar-edit",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
             ],
         },
     ),

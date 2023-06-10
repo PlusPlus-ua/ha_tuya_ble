@@ -115,6 +115,8 @@
       }
     },
     "switch": {
+      "programming_mode": { "name": "Programming Mode" },
+      "programming_switch": { "name": "Programming Switch" },
       "antifreeze": { "name": "Antifreeze" },
       "child_lock": { "name": "Child Lock" },
       "window_check": { "name": "Window Check" },
