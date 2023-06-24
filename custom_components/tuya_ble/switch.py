@@ -20,9 +20,6 @@ from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
-_LOGGER = logging.getLogger(__name__)
-
-
 TuyaBLESwitchIsAvailable = Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool] | None
 
 
@@ -172,7 +169,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         key="window_check",
                         icon="mdi:window-closed",
                         entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=False,
+                        entity_registry_enabled_default=True,
                     ),
                 ),
                 TuyaBLESwitchMapping(
@@ -181,7 +178,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         key="antifreeze",
                         icon="mdi:snowflake-off",
                         entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=False,
+                        entity_registry_enabled_default=True,
                     ),
                 ),
                 TuyaBLESwitchMapping(
@@ -190,7 +187,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         key="child_lock",
                         icon="mdi:account-lock",
                         entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=False,
+                        entity_registry_enabled_default=True,
                     ),
                 ),
                 TuyaBLESwitchMapping(
@@ -199,7 +196,25 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         key="water_scale_proof",
                         icon="mdi:water-check",
                         entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=False,
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=107,
+                    description=SwitchEntityDescription(
+                        key="programming_mode",
+                        icon="mdi:calendar-edit",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=108,
+                    description=SwitchEntityDescription(
+                        key="programming_switch",
+                        icon="mdi:calendar-clock",
+                        entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=True,
                     ),
                 ),
             ],

@@ -66,6 +66,11 @@
         "name": "Temperature unit"
       }
     },
+    "binary_sensor": {
+      "low_battery": {
+        "name": "Is battery low?"
+      }
+    },
     "sensor": {
       "battery": {
         "name": "[%key:component::sensor::entity_component::battery::name%]"
@@ -110,6 +115,12 @@
       }
     },
     "switch": {
+      "programming_mode": { "name": "Programming Mode" },
+      "programming_switch": { "name": "Programming Switch" },
+      "antifreeze": { "name": "Antifreeze" },
+      "child_lock": { "name": "Child Lock" },
+      "window_check": { "name": "Window Check" },
+      "water_scale_proof": { "name": "Anti-scale" },
       "carbon_dioxide_alarm_switch": {
         "name": "Alarm enabled"
       },

@@ -13,6 +13,7 @@ from homeassistant.components.climate import (
 from homeassistant.components.climate.const import (
     ClimateEntityFeature,
     HVACMode,
+    HVACAction,
     PRESET_AWAY,
     PRESET_NONE,
 )
@@ -24,7 +25,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
-from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
+from .tuya_ble import TuyaBLEDataPoint, TuyaBLEDataPointType, TuyaBLEDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class TuyaBLEClimateMapping:
     target_temperature_dp_id: int = 0
     target_temperature_coefficient: float = 1.0
     target_temperature_max: float = 30.0
-    target_temperature_min: float = -20.0
+    target_temperature_min: float = 5
     target_temperature_step: float = 1.0
 
     current_humidity_dp_id: int = 0
@@ -67,18 +68,57 @@ class TuyaBLECategoryClimateMapping:
 mapping: dict[str, TuyaBLECategoryClimateMapping] = {
     "wk": TuyaBLECategoryClimateMapping(
         products={
-            "drlajpqc": [  # Thermostatic Radiator Valve
+            "drlajpqc": [
+                # Thermostatic Radiator Valve
+                # - [x] 8   - Window
+                # - [x] 10  - Antifreeze
+                # - [x] 27  - Calibration
+                # - [x] 40  - Lock
+                # - [x] 101 - Switch
+                # - [x] 102 - Current
+                # - [x] 103 - Target
+                # - [ ] 104 - Heating time
+                # - [x] 105 - Battery power alarm
+                # - [x] 106 - Away
+                # - [x] 107 - Programming mode
+                # - [x] 108 - Programming switch
+                # - [ ] 109 - Programming data (deprecated - do not delete)
+                # - [ ] 110 - Historical data protocol (Day-Target temperature)
+                # - [ ] 111 - System Time Synchronization
+                # - [ ] 112 - Historical data (Week-Target temperature)
+                # - [ ] 113 - Historical data (Month-Target temperature)
+                # - [ ] 114 - Historical data (Year-Target temperature)
+                # - [ ] 115 - Historical data (Day-Current temperature)
+                # - [ ] 116 - Historical data (Week-Current temperature)
+                # - [ ] 117 - Historical data (Month-Current temperature)
+                # - [ ] 118 - Historical data (Year-Current temperature)
+                # - [ ] 119 - Historical data (Day-motor opening degree)
+                # - [ ] 120 - Historical data (Week-motor opening degree)
+                # - [ ] 121 - Historical data (Month-motor opening degree)
+                # - [ ] 122 - Historical data (Year-motor opening degree)
+                # - [ ] 123 - Programming data (Monday)
+                # - [ ] 124 - Programming data (Tuseday)
+                # - [ ] 125 - Programming data (Wednesday)
+                # - [ ] 126 - Programming data (Thursday)
+                # - [ ] 127 - Programming data (Friday)
+                # - [ ] 128 - Programming data (Saturday)
+                # - [ ] 129 - Programming data (Sunday)
+                # - [x] 130 - Water scale
                 TuyaBLEClimateMapping(
                     description=ClimateEntityDescription(
                         key="thermostatic_radiator_valve",
                     ),
-                    hvac_switch_dp_id=17,
+                    hvac_switch_dp_id=101,
                     hvac_switch_mode=HVACMode.HEAT,
-                    # preset_mode_dp_ids={PRESET_AWAY: 106},
+                    hvac_modes=[HVACMode.OFF, HVACMode.HEAT],
+                    preset_mode_dp_ids={PRESET_AWAY: 106, PRESET_NONE: 106},
                     current_temperature_dp_id=102,
                     current_temperature_coefficient=10.0,
+                    target_temperature_coefficient=10.0,
+                    target_temperature_step=0.5,
                     target_temperature_dp_id=103,
                     target_temperature_min=5.0,
+                    target_temperature_max=30.0,
                 ),
             ],
         },
@@ -113,7 +153,9 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
     ) -> None:
         super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
-        self._attr_hvac_mode = HVACMode.OFF
+        self._attr_hvac_mode = HVACMode.HEAT
+        self._attr_preset_mode = PRESET_NONE
+        self._attr_hvac_action = HVACAction.HEATING
 
         if mapping.hvac_mode_dp_id and mapping.hvac_modes:
             self._attr_hvac_modes = mapping.hvac_modes
@@ -185,12 +227,24 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
 
         if self._mapping.preset_mode_dp_ids:
             current_preset_mode = PRESET_NONE
-            for preset_mode, dp_id in self._mapping.preset_mode_dp_ids:
+            for preset_mode, dp_id in self._mapping.preset_mode_dp_ids.items():
                 datapoint = self._device.datapoints[dp_id]
                 if datapoint and datapoint.value:
                     current_preset_mode = preset_mode
                     break
             self._attr_preset_mode = current_preset_mode
+
+        try:
+            if (
+                self._attr_preset_mode == PRESET_AWAY
+                or self._attr_hvac_mode == HVACMode.OFF
+                or self._attr_target_temperature <= self._attr_current_temperature
+            ):
+                self._attr_hvac_action = HVACAction.IDLE
+            else:
+                self._attr_hvac_action = HVACAction.HEATING
+        except:
+            pass
 
         self.async_write_ha_state()
 
@@ -198,7 +252,7 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
         """Set new target temperature."""
         if self._mapping.target_temperature_dp_id != 0:
             int_value = int(
-                kwargs["temperature"] * self._mapping.target_humidity_coefficient
+                kwargs["temperature"] * self._mapping.target_temperature_coefficient
             )
             datapoint = self._device.datapoints.get_or_create(
                 self._mapping.target_temperature_dp_id,
@@ -248,15 +302,37 @@ class TuyaBLEClimate(TuyaBLEEntity, ClimateEntity):
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         if self._mapping.preset_mode_dp_ids:
-            for dp_preset_mode, dp_id in self._mapping.preset_mode_dp_ids:
-                bool_value = dp_preset_mode == preset_mode
-                datapoint = self._device.datapoints.get_or_create(
-                    dp_id,
-                    TuyaBLEDataPointType.DT_BOOL,
-                    bool_value,
-                )
-                if datapoint:
-                    self._hass.create_task(datapoint.set_value(bool_value))
+            datapoint: TuyaBLEDataPoint | None = None
+            bool_value = False
+
+            keys = [x for x in self._mapping.preset_mode_dp_ids.keys()]
+            values = [
+                x for x in self._mapping.preset_mode_dp_ids.values()
+            ]  # Get all DP IDs
+            # TRVs with only Away and None modes can be set with a single datapoint and use a single DP ID
+            if all(values[0] == elem for elem in values) and keys[0] == PRESET_AWAY:
+                for dp_id in values:
+                    bool_value = preset_mode == PRESET_AWAY
+                    datapoint = self._device.datapoints.get_or_create(
+                        dp_id,
+                        TuyaBLEDataPointType.DT_BOOL,
+                        bool_value,
+                    )
+                    break
+            else:
+                if self._mapping.preset_mode_dp_ids:
+                    for (
+                        dp_preset_mode,
+                        dp_id,
+                    ) in self._mapping.preset_mode_dp_ids.items():
+                        bool_value = dp_preset_mode == preset_mode
+                        datapoint = self._device.datapoints.get_or_create(
+                            dp_id,
+                            TuyaBLEDataPointType.DT_BOOL,
+                            bool_value,
+                        )
+            if datapoint:
+                self._hass.create_task(datapoint.set_value(bool_value))
 
 
 async def async_setup_entry(

@@ -231,7 +231,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
         products={
             "drlajpqc": [  # Thermostatic Radiator Valve
                 TuyaBLENumberMapping(
-                    dp_id=17,
+                    dp_id=27,
                     description=NumberEntityDescription(
                         key="temperature_calibration",
                         icon="mdi:thermometer-lines",
@@ -240,6 +240,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                         native_step=1,
                         entity_category=EntityCategory.CONFIG,
+                        entity_registry_enabled_default=True,
                     ),
                 ),
             ],
