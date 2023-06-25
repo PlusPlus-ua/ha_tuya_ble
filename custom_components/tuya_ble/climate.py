@@ -68,7 +68,12 @@ class TuyaBLECategoryClimateMapping:
 mapping: dict[str, TuyaBLECategoryClimateMapping] = {
     "wk": TuyaBLECategoryClimateMapping(
         products={
-            "drlajpqc": [
+            **dict.fromkeys(
+                [
+                "drlajpqc", 
+                "nhj2j7su",
+                ],  # Thermostatic Radiator Valve
+                [
                 # Thermostatic Radiator Valve
                 # - [x] 8   - Window
                 # - [x] 10  - Antifreeze
@@ -119,8 +124,9 @@ mapping: dict[str, TuyaBLECategoryClimateMapping] = {
                     target_temperature_dp_id=103,
                     target_temperature_min=5.0,
                     target_temperature_max=30.0,
-                ),
-            ],
+                    ),
+                ],
+            ),
         },
     ),
 }

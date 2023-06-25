@@ -162,7 +162,12 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
     ),
     "wk": TuyaBLECategorySwitchMapping(
         products={
-            "drlajpqc": [  # Thermostatic Radiator Valve
+            **dict.fromkeys(
+                [
+                "drlajpqc", 
+                "nhj2j7su",
+                ],  # Thermostatic Radiator Valve
+                [
                 TuyaBLESwitchMapping(
                     dp_id=8,
                     description=SwitchEntityDescription(
@@ -215,9 +220,10 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                         icon="mdi:calendar-clock",
                         entity_category=EntityCategory.CONFIG,
                         entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-            ],
+                ],
+            ),
         },
     ),
     "wsdcg": TuyaBLECategorySwitchMapping(

@@ -229,7 +229,12 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
     ),
     "wk": TuyaBLECategoryNumberMapping(
         products={
-            "drlajpqc": [  # Thermostatic Radiator Valve
+            **dict.fromkeys(
+                [
+                "drlajpqc", 
+                "nhj2j7su",
+                ],  # Thermostatic Radiator Valve
+                [
                 TuyaBLENumberMapping(
                     dp_id=27,
                     description=NumberEntityDescription(
@@ -241,9 +246,10 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         native_step=1,
                         entity_category=EntityCategory.CONFIG,
                         entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-            ],
+                ],
+            ),
         },
     ),
     "wsdcg": TuyaBLECategoryNumberMapping(

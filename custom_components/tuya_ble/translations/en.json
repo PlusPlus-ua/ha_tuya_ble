@@ -52,6 +52,9 @@
             },
             "up_position": {
                 "name": "Up position"
+            },
+			"temperature_calibration": {
+                "name": "Temperature calibration"
             }
         },
         "select": {
@@ -127,7 +130,25 @@
             },
             "switch": {
                 "name": "Switch"
-            }
+            },
+			"window_check": {
+				"name": "Window check"
+			},
+			"antifreeze": {
+				"name": "Antifreeze"
+			},
+			"child_lock": {
+				"name": "Child lock"
+			},
+			"water_scale_proof": {
+				"name": "Water scale proof"
+			},
+			"programming_mode": {
+				"name": "Programming mode"
+			},
+			"programming_switch": {
+				"name": "Programming switch"
+			}
         }
     },
     "options": {

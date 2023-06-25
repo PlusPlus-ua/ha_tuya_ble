@@ -39,7 +39,7 @@ The integration works locally, but connection to Tuya BLE device requires device
   + Smart Lock (product_id 'ludzroix'), first attempt to support for now.
 
 * Climate (category_id 'wk')
-  + Thermostatic Radiator Valve (product_id 'drlajpqc'), first attempt to support for now.
+  + Thermostatic Radiator Valve (product_ids 'drlajpqc', 'nhj2j7su'), first attempt to support for now.
 
 ## Support project
 
