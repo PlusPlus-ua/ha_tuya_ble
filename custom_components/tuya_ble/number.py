@@ -10,13 +10,14 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberEntity,
 )
-from homeassistant.components.number.const import NumberMode
+from homeassistant.components.number.const import NumberDeviceClass, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
     TIME_MINUTES,
     TIME_SECONDS,
+    VOLUME_MILLILITERS,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -36,7 +37,9 @@ TuyaBLENumberGetter = (
 )
 
 
-TuyaBLENumberIsAvailable = Callable[["TuyaBLENumber", TuyaBLEProductInfo], bool] | None
+TuyaBLENumberIsAvailable = (
+    Callable[["TuyaBLENumber", TuyaBLEProductInfo], bool] | None
+)
 
 
 TuyaBLENumberSetter = (
@@ -55,6 +58,33 @@ class TuyaBLENumberMapping:
     getter: TuyaBLENumberGetter = None
     setter: TuyaBLENumberSetter = None
     mode: NumberMode = NumberMode.BOX
+
+
+def is_fingerbot_not_in_program_mode(self: TuyaBLENumber, product: TuyaBLEProductInfo) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value != 2
+    return result
+
+
+def is_fingerbot_in_program_mode(self: TuyaBLENumber, product: TuyaBLEProductInfo) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 2
+    return result
+
+
+def is_fingerbot_in_push_mode(self: TuyaBLENumber, product: TuyaBLEProductInfo) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 0
+    return result
 
 
 @dataclass
@@ -77,15 +107,6 @@ class TuyaBLEUpPositionDescription(NumberEntityDescription):
     native_unit_of_measurement: str = PERCENTAGE
     native_step: float = 1
     entity_category: EntityCategory = EntityCategory.CONFIG
-
-
-def is_fingerbot_in_push_mode(self: TuyaBLENumber, product: TuyaBLEProductInfo) -> bool:
-    result: bool = True
-    if product.fingerbot:
-        datapoint = self._device.datapoints[product.fingerbot.mode]
-        if datapoint:
-            result = datapoint.value == 0
-    return result
 
 
 @dataclass
@@ -183,16 +204,23 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh", 
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLENumberMapping(
                         dp_id=9,
                         description=TuyaBLEDownPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                     TuyaBLEHoldTimeMapping(dp_id=10),
                     TuyaBLENumberMapping(
                         dp_id=15,
                         description=TuyaBLEUpPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                 ],
             ),
@@ -210,6 +238,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     TuyaBLENumberMapping(
                         dp_id=9,
                         description=TuyaBLEDownPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                     TuyaBLENumberMapping(
                         dp_id=10,
@@ -222,6 +251,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     TuyaBLENumberMapping(
                         dp_id=15,
                         description=TuyaBLEUpPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                 ],
             ),
@@ -235,17 +265,17 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 "nhj2j7su",
                 ],  # Thermostatic Radiator Valve
                 [
-                TuyaBLENumberMapping(
-                    dp_id=27,
-                    description=NumberEntityDescription(
-                        key="temperature_calibration",
-                        icon="mdi:thermometer-lines",
-                        native_max_value=6,
-                        native_min_value=-6,
-                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-                        native_step=1,
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLENumberMapping(
+                        dp_id=27,
+                        description=NumberEntityDescription(
+                            key="temperature_calibration",
+                            icon="mdi:thermometer-lines",
+                            native_max_value=6,
+                            native_min_value=-6,
+                            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                            native_step=1,
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
                         ),
                     ),
                 ],
@@ -263,6 +293,25 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         native_max_value=120,
                         native_min_value=1,
                         native_unit_of_measurement=TIME_MINUTES,
+                        native_step=1,
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                ),
+            ],
+        },
+    ),
+    "znhsb": TuyaBLECategoryNumberMapping(
+        products={
+            "cdlandip":  # Smart water bottle
+            [
+                TuyaBLENumberMapping(
+                    dp_id=103,
+                    description=NumberEntityDescription(
+                        key="recommended_water_intake",
+                        device_class= NumberDeviceClass.WATER,
+                        native_max_value=5000,
+                        native_min_value=0,
+                        native_unit_of_measurement=VOLUME_MILLILITERS,
                         native_step=1,
                         entity_category=EntityCategory.CONFIG,
                     ),

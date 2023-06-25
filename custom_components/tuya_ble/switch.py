@@ -20,7 +20,22 @@ from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
-TuyaBLESwitchIsAvailable = Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool] | None
+_LOGGER = logging.getLogger(__name__)
+
+
+TuyaBLESwitchGetter = (
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool | None] | None
+)
+
+
+TuyaBLESwitchIsAvailable = (
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool] | None
+)
+
+
+TuyaBLESwitchSetter = (
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo, bool], bool] | None
+)
 
 
 @dataclass
@@ -31,6 +46,19 @@ class TuyaBLESwitchMapping:
     dp_type: TuyaBLEDataPointType | None = None
     bitmap_mask: bytes | None = None
     is_available: TuyaBLESwitchIsAvailable = None
+    getter: TuyaBLESwitchGetter = None
+    setter: TuyaBLESwitchSetter = None
+
+
+def is_fingerbot_in_program_mode(
+    self: TuyaBLESwitch, product: TuyaBLEProductInfo
+) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 2
+    return result
 
 
 def is_fingerbot_in_switch_mode(
@@ -52,6 +80,16 @@ class TuyaBLEFingerbotSwitchMapping(TuyaBLESwitchMapping):
         )
     )
     is_available: TuyaBLESwitchIsAvailable = is_fingerbot_in_switch_mode
+
+
+@dataclass
+class TuyaBLEFingerbotProgramMapping(TuyaBLESwitchMapping):
+    description: SwitchEntityDescription = field(
+        default_factory=lambda: SwitchEntityDescription(
+            key="program",
+        )
+    )
+    is_available: TuyaBLESwitchIsAvailable = is_fingerbot_in_program_mode
 
 
 @dataclass
@@ -129,9 +167,15 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh", 
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
+                    TuyaBLEFingerbotProgramMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),
                     TuyaBLESwitchMapping(
                         dp_id=17,
@@ -155,6 +199,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],  # Fingerbot
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
+                    TuyaBLEFingerbotProgramMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),
                 ],
             ),
@@ -168,58 +213,58 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 "nhj2j7su",
                 ],  # Thermostatic Radiator Valve
                 [
-                TuyaBLESwitchMapping(
-                    dp_id=8,
-                    description=SwitchEntityDescription(
-                        key="window_check",
-                        icon="mdi:window-closed",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=8,
+                        description=SwitchEntityDescription(
+                            key="window_check",
+                            icon="mdi:window-closed",
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=10,
-                    description=SwitchEntityDescription(
-                        key="antifreeze",
-                        icon="mdi:snowflake-off",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=10,
+                        description=SwitchEntityDescription(
+                            key="antifreeze",
+                            icon="mdi:snowflake-off",
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=40,
-                    description=SwitchEntityDescription(
-                        key="child_lock",
-                        icon="mdi:account-lock",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=40,
+                        description=SwitchEntityDescription(
+                            key="child_lock",
+                            icon="mdi:account-lock",
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=130,
-                    description=SwitchEntityDescription(
-                        key="water_scale_proof",
-                        icon="mdi:water-check",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=130,
+                        description=SwitchEntityDescription(
+                            key="water_scale_proof",
+                            icon="mdi:water-check",
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=107,
-                    description=SwitchEntityDescription(
-                        key="programming_mode",
-                        icon="mdi:calendar-edit",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=107,
+                        description=SwitchEntityDescription(
+                            key="programming_mode",
+                            icon="mdi:calendar-edit",
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=108,
-                    description=SwitchEntityDescription(
-                        key="programming_switch",
-                        icon="mdi:calendar-clock",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=108,
+                        description=SwitchEntityDescription(
+                            key="programming_switch",
+                            icon="mdi:calendar-clock",
+                            entity_category=EntityCategory.CONFIG,
+                            entity_registry_enabled_default=True,
                         ),
                     ),
                 ],

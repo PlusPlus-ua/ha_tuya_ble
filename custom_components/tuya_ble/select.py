@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     DOMAIN,
+    FINGERBOT_MODE_PROGRAM,
     FINGERBOT_MODE_PUSH,
     FINGERBOT_MODE_SWITCH,
 )
@@ -48,7 +49,12 @@ class TuyaBLEFingerbotModeMapping(TuyaBLESelectMapping):
         default_factory=lambda: SelectEntityDescription(
             key="fingerbot_mode",
             entity_category=EntityCategory.CONFIG,
-            options=[FINGERBOT_MODE_PUSH, FINGERBOT_MODE_SWITCH],
+            options=
+                [
+                    FINGERBOT_MODE_PUSH, 
+                    FINGERBOT_MODE_SWITCH,
+                    FINGERBOT_MODE_PROGRAM,
+                ],
         )
     )
 
@@ -105,7 +111,12 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh", 
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=8),
                 ],
@@ -133,6 +144,33 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                         ],
                         entity_registry_enabled_default=False,
                     )
+                ),
+            ],
+        },
+    ),
+    "znhsb": TuyaBLECategorySelectMapping(
+        products={
+            "cdlandip":  # Smart water bottle
+            [
+                TuyaBLESelectMapping(
+                    dp_id=106,
+                    description=TemperatureUnitDescription(
+                        options=[
+                            UnitOfTemperature.CELSIUS,
+                            UnitOfTemperature.FAHRENHEIT,
+                        ],
+                    )
+                ),
+                TuyaBLESelectMapping(
+                    dp_id=107,
+                    description=SelectEntityDescription(
+                        key="reminder_mode",
+                        options=[
+                            "interval_reminder",
+                            "schedule_reminder",
+                        ],
+                        entity_category=EntityCategory.CONFIG,
+                    ),
                 ),
             ],
         },

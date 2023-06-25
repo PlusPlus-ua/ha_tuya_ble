@@ -36,5 +36,6 @@ CO2_LEVEL_ALARM: Final = "alarm"
 
 FINGERBOT_MODE_PUSH: Final = "push"
 FINGERBOT_MODE_SWITCH: Final = "switch"
+FINGERBOT_MODE_PROGRAM: Final = "program"
 FINGERBOT_BUTTON_EVENT: Final = "fingerbot_button_pressed"
 

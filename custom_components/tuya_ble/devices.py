@@ -127,7 +127,7 @@ class TuyaBLECoordinator(DataUpdateCoordinator[None]):
         self._async_handle_connect()
         self.async_set_updated_data(None)
         info = get_device_product_info(self._device)
-        if info.fingerbot and info.fingerbot.manual_control != 0:
+        if info and info.fingerbot and info.fingerbot.manual_control != 0:
             for update in updates:
                 if update.id == info.fingerbot.switch and update.changed_by_device:
                     self.hass.bus.fire(
@@ -212,7 +212,12 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                 ),
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # device product_ids
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh", 
+                    "neq16kgd"
+                ],  # device product_ids
                 TuyaBLEProductInfo(
                     name="Fingerbot Plus",
                     fingerbot=TuyaBLEFingerbotInfo(
@@ -253,11 +258,11 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
     "wk": TuyaBLECategoryInfo(
         products={
             **dict.fromkeys(
-                [
-                "drlajpqc", 
-                "nhj2j7su",
-                ],  # device product_id
-                TuyaBLEProductInfo(
+            [
+            "drlajpqc", 
+            "nhj2j7su",
+            ],  # device product_id
+            TuyaBLEProductInfo(  
                 name="Thermostatic Radiator Valve",
                 ),
             ),
@@ -267,6 +272,14 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
         products={
             "ojzlzzsw": TuyaBLEProductInfo(  # device product_id
                 name="Soil moisture sensor",
+            ),
+        },
+    ),
+    "znhsb": TuyaBLECategoryInfo(
+        products={
+            "cdlandip":  # device product_id
+            TuyaBLEProductInfo(
+                name="Smart water bottle",
             ),
         },
     ),

@@ -666,7 +666,7 @@ class TuyaBLEDevice:
                                 "%s: Sending pairing request failed", self.address
                             )
                             continue
-                    except [BLEAK_EXCEPTIONS, BleakNotFoundError]:
+                    except:# [BLEAK_EXCEPTIONS, BleakNotFoundError]:
                         self._client = None
                         _LOGGER.error(
                             "%s: Sending pairing request failed",

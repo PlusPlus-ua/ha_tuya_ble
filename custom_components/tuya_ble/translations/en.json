@@ -29,6 +29,11 @@
         }
     },
     "entity": {
+        "binary_sensor": {
+            "low_battery": {
+                "name": "Battery"
+            }
+        },
         "button": {
             "push": {
                 "name": "Push"
@@ -47,6 +52,9 @@
             "hold_time": {
                 "name": "Hold time"
             },
+            "recommended_water_intake": {
+                "name": "Recommended water intake"
+            },
             "reporting_period": {
                 "name": "Reporting period"
             },
@@ -61,8 +69,16 @@
             "fingerbot_mode": {
                 "name": "Mode",
                 "state": {
+                    "program": "Program",
                     "push": "Push",
                     "switch": "Switch"
+                }
+            },
+            "reminder_mode": {
+                "name": "Reminder mode",
+                "state": {
+                    "interval_reminder": "Interval",
+                    "schedule_reminder": "Schedule"
                 }
             },
             "temperature_unit": {
@@ -113,17 +129,38 @@
             }
         },
         "switch": {
+            },
+            "water_intake": {
+                "name": "Water intake"
+            }
+        },
+        "switch": {
+            "antifreeze": {
+                "name": "Antifreeze"
+            },
             "carbon_dioxide_alarm_switch": {
                 "name": "Alarm enabled"
             },
             "carbon_dioxide_severely_exceed_alarm": {
                 "name": "Severely exceed alarm"
             },
+            "child_lock": {
+                "name": "Child Lock"
+            },
             "low_battery_alarm": {
                 "name": "Low battery alarm"
             },
             "manual_control": {
                 "name": "Manual control"
+            },
+            "program": {
+                "name": "Program"
+            },
+            "programming_mode": {
+                "name": "Programming Mode"
+            },
+            "programming_switch": {
+                "name": "Programming Switch"
             },
             "reverse_positions": {
                 "name": "Reverse positions"

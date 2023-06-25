@@ -18,6 +18,7 @@ from homeassistant.const import (
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     TEMP_CELSIUS,
+    VOLUME_MILLILITERS,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -90,6 +91,12 @@ def is_co2_alarm_enabled(self: TuyaBLESensor, product: TuyaBLEProductInfo) -> bo
     if datapoint:
         result = bool(datapoint.value)
     return result
+
+
+def battery_enum_getter(self: TuyaBLESensor) -> None:
+    datapoint = self._device.datapoints[104]
+    if datapoint:
+        self._attr_native_value = datapoint.value * 20.0
 
 
 @dataclass
@@ -183,7 +190,12 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh", 
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLEBatteryMapping(dp_id=12),
                 ],
@@ -240,6 +252,36 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                     ],
                 ),
                 TuyaBLEBatteryMapping(dp_id=4),
+            ],
+        },
+    ),
+    "znhsb": TuyaBLECategorySensorMapping(
+        products={
+            "cdlandip":  # Smart water bottle
+            [
+                TuyaBLETemperatureMapping(
+                    dp_id=101,
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=102,
+                    description=SensorEntityDescription(
+                        key="water_intake",
+                        device_class=SensorDeviceClass.WATER,
+                        native_unit_of_measurement=VOLUME_MILLILITERS,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=104,
+                    description=SensorEntityDescription(
+                        key="battery",
+                        device_class=SensorDeviceClass.BATTERY,
+                        native_unit_of_measurement=PERCENTAGE,
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                    getter=battery_enum_getter,
+                ),
             ],
         },
     ),
