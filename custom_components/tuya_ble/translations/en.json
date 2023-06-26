@@ -112,7 +112,7 @@
                 "name": "Temperature"
             },
             "time_left": {
-                "name": "Remaining irrgation time"
+                "name": "Remaining irrigation time"
             }
         },
         "switch": {
