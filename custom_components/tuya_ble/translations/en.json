@@ -135,7 +135,7 @@
                 "name": "Switch"
             },            
             "water_valve": {
-                "name": "Irrigation Valve"
+                "name": "Irrigation valve"
             }     
         }
     },
