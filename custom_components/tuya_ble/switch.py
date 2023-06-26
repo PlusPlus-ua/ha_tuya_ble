@@ -242,7 +242,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                     dp_id=1,
                     description=SwitchEntityDescription(
                         key="water_valve",
-                        entity_category=EntityCategory.CONFIG,
                         entity_registry_enabled_default=True,
                     ),
                 ),

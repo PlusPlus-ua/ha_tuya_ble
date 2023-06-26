@@ -52,6 +52,9 @@
             },
             "up_position": {
                 "name": "Up position"
+            },
+            "countdown_duration": {
+                "name": "Irrigation duration"
             }
         },
         "select": {
@@ -107,6 +110,9 @@
             },
             "temperature": {
                 "name": "Temperature"
+            },
+            "time_left": {
+                "name": "Remaining irrgation time"
             }
         },
         "switch": {
@@ -127,7 +133,10 @@
             },
             "switch": {
                 "name": "Switch"
-            }
+            },            
+            "water_valve": {
+                "name": "Irrigation Valve"
+            }     
         }
     },
     "options": {
