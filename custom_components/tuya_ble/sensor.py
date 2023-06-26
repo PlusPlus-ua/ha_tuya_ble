@@ -19,6 +19,7 @@ from homeassistant.const import (
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     TEMP_CELSIUS,
     UnitOfTemperature,
+    UnitOfTime
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -240,6 +241,22 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                     ],
                 ),
                 TuyaBLEBatteryMapping(dp_id=4),
+            ],
+        },
+    ),
+    "ggq": TuyaBLECategorySensorMapping(
+        products={
+            "6pahkcau": [  # Irrigation computer
+                TuyaBLEBatteryMapping(dp_id=11),
+                TuyaBLESensorMapping(
+                    dp_id=6,
+                    description=SensorEntityDescription(
+                        key="time_left",
+                        device_class=SensorDeviceClass.DURATION,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                ),
             ],
         },
     ),
