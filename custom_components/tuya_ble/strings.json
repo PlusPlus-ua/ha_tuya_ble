@@ -55,6 +55,12 @@
       },
       "recommended_water_intake": {
         "name": "Recommended water intake"
+      },
+      "program_repeats_count": {
+        "name": "Repeats count"
+      },
+      "program_idle_position": {
+        "name": "Idle position"
       }
     },
     "select": {
@@ -80,11 +86,6 @@
     "binary_sensor": {
       "low_battery": {
         "name": "[%key:component::sensor::entity_component::battery::name%]"
-      }
-    },
-    "binary_sensor": {
-      "low_battery": {
-        "name": "Is battery low?"
       }
     },
     "sensor": {
@@ -167,11 +168,19 @@
       "program": {
         "name": "Program"
       },
+      "program_repeat_forever": {
+        "name": "Repeat forever"
+      },      
       "reverse_positions": {
         "name": "Reverse positions"
       },
       "switch": {
         "name": "[%key:component::switch::entity_component::_::name%]"
+      }
+    },
+    "text": {
+      "program": {
+        "name": "Program: position[/time];..."
       }
     }
   },

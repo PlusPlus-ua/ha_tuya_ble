@@ -52,6 +52,12 @@
             "hold_time": {
                 "name": "Hold time"
             },
+            "program_idle_position": {
+                "name": "Idle position"
+            },
+            "program_repeats_count": {
+                "name": "Repeats count"
+            },
             "recommended_water_intake": {
                 "name": "Recommended water intake"
             },
@@ -60,9 +66,6 @@
             },
             "up_position": {
                 "name": "Up position"
-            },
-			"temperature_calibration": {
-                "name": "Temperature calibration"
             }
         },
         "select": {
@@ -126,9 +129,6 @@
             },
             "temperature": {
                 "name": "Temperature"
-            }
-        },
-        "switch": {
             },
             "water_intake": {
                 "name": "Water intake"
@@ -156,6 +156,9 @@
             "program": {
                 "name": "Program"
             },
+            "program_repeat_forever": {
+                "name": "Repeat forever"
+            },
             "programming_mode": {
                 "name": "Programming Mode"
             },
@@ -168,24 +171,17 @@
             "switch": {
                 "name": "Switch"
             },
-			"window_check": {
-				"name": "Window check"
-			},
-			"antifreeze": {
-				"name": "Antifreeze"
-			},
-			"child_lock": {
-				"name": "Child lock"
-			},
-			"water_scale_proof": {
-				"name": "Water scale proof"
-			},
-			"programming_mode": {
-				"name": "Programming mode"
-			},
-			"programming_switch": {
-				"name": "Programming switch"
-			}
+            "water_scale_proof": {
+                "name": "Anti-scale"
+            },
+            "window_check": {
+                "name": "Window Check"
+            }
+        },
+        "text": {
+            "program": {
+                "name": "Program: position[/time];..."
+            }
         }
     },
     "options": {

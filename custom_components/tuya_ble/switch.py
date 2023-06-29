@@ -34,7 +34,7 @@ TuyaBLESwitchIsAvailable = (
 
 
 TuyaBLESwitchSetter = (
-    Callable[["TuyaBLESwitch", TuyaBLEProductInfo, bool], bool] | None
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo, bool], None] | None
 )
 
 
@@ -72,6 +72,31 @@ def is_fingerbot_in_switch_mode(
     return result
 
 
+def get_fingerbot_program_repeat_forever(
+    self: TuyaBLESwitch, product: TuyaBLEProductInfo
+) -> bool | None:
+    result: bool | None = None
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            repeat_count = int.from_bytes(datapoint.value[0:2], "big")
+            result = repeat_count == 0xFFFF
+    return result
+
+
+def set_fingerbot_program_repeat_forever(
+    self: TuyaBLESwitch, product: TuyaBLEProductInfo, value: bool
+) -> None:
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            new_value = (
+                int.to_bytes(0xFFFF if value else 1, 2, "big") + 
+                datapoint.value[2:]
+            )
+            self._hass.create_task(datapoint.set_value(new_value))
+
+
 @dataclass
 class TuyaBLEFingerbotSwitchMapping(TuyaBLESwitchMapping):
     description: SwitchEntityDescription = field(
@@ -80,16 +105,6 @@ class TuyaBLEFingerbotSwitchMapping(TuyaBLESwitchMapping):
         )
     )
     is_available: TuyaBLESwitchIsAvailable = is_fingerbot_in_switch_mode
-
-
-@dataclass
-class TuyaBLEFingerbotProgramMapping(TuyaBLESwitchMapping):
-    description: SwitchEntityDescription = field(
-        default_factory=lambda: SwitchEntityDescription(
-            key="program",
-        )
-    )
-    is_available: TuyaBLESwitchIsAvailable = is_fingerbot_in_program_mode
 
 
 @dataclass
@@ -170,12 +185,11 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 [
                     "blliqpsj",
                     "ndvkgsrm",
-                    "yiihr7zh", 
+                    "yiihr7zh",
                     "neq16kgd"
                 ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
-                    TuyaBLEFingerbotProgramMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),
                     TuyaBLESwitchMapping(
                         dp_id=17,
@@ -184,6 +198,25 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             icon="mdi:gesture-tap-box",
                             entity_category=EntityCategory.CONFIG,
                         ),
+                    ),
+                    TuyaBLESwitchMapping(
+                        dp_id=2,
+                        description=SwitchEntityDescription(
+                            key="program",
+                            icon="mdi:repeat",
+                        ),
+                        is_available=is_fingerbot_in_program_mode,
+                    ),
+                    TuyaBLESwitchMapping(
+                        dp_id=121,
+                        description=SwitchEntityDescription(
+                            key="program_repeat_forever",
+                            icon="mdi:repeat",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        getter=get_fingerbot_program_repeat_forever,
+                        is_available=is_fingerbot_in_program_mode,
+                        setter=set_fingerbot_program_repeat_forever,
                     ),
                 ],
             ),
@@ -199,7 +232,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],  # Fingerbot
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
-                    TuyaBLEFingerbotProgramMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),
                 ],
             ),
@@ -209,8 +241,8 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
         products={
             **dict.fromkeys(
                 [
-                "drlajpqc", 
-                "nhj2j7su",
+                    "drlajpqc",
+                    "nhj2j7su",
                 ],  # Thermostatic Radiator Valve
                 [
                     TuyaBLESwitchMapping(
@@ -219,7 +251,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="window_check",
                             icon="mdi:window-closed",
                             entity_category=EntityCategory.CONFIG,
-                            entity_registry_enabled_default=True,
                         ),
                     ),
                     TuyaBLESwitchMapping(
@@ -228,7 +259,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="antifreeze",
                             icon="mdi:snowflake-off",
                             entity_category=EntityCategory.CONFIG,
-                            entity_registry_enabled_default=True,
                         ),
                     ),
                     TuyaBLESwitchMapping(
@@ -237,7 +267,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="child_lock",
                             icon="mdi:account-lock",
                             entity_category=EntityCategory.CONFIG,
-                            entity_registry_enabled_default=True,
                         ),
                     ),
                     TuyaBLESwitchMapping(
@@ -246,7 +275,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="water_scale_proof",
                             icon="mdi:water-check",
                             entity_category=EntityCategory.CONFIG,
-                            entity_registry_enabled_default=True,
                         ),
                     ),
                     TuyaBLESwitchMapping(
@@ -255,7 +283,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="programming_mode",
                             icon="mdi:calendar-edit",
                             entity_category=EntityCategory.CONFIG,
-                            entity_registry_enabled_default=True,
                         ),
                     ),
                     TuyaBLESwitchMapping(
@@ -264,7 +291,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="programming_switch",
                             icon="mdi:calendar-clock",
                             entity_category=EntityCategory.CONFIG,
-                            entity_registry_enabled_default=True,
                         ),
                     ),
                 ],
@@ -320,6 +346,10 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
+
+        if self._mapping.getter:
+            return self._mapping.getter(self, self._product)
+
         datapoint = self._device.datapoints[self._mapping.dp_id]
         if datapoint:
             if (
@@ -338,6 +368,9 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
+        if self._mapping.setter:
+            return self._mapping.setter(self, self._product, True)
+
         new_value: bool | bytes
         if self._mapping.bitmap_mask:
             datapoint = self._device.datapoints.get_or_create(
@@ -362,6 +395,9 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
 
     def turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
+        if self._mapping.setter:
+            return self._mapping.setter(self, self._product, False)
+
         new_value: bool | bytes
         if self._mapping.bitmap_mask:
             datapoint = self._device.datapoints.get_or_create(

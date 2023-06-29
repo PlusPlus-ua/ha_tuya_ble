@@ -46,6 +46,7 @@ class TuyaBLEFingerbotInfo:
     hold_time: int
     reverse_positions: int
     manual_control: int = 0
+    program: int = 0
 
 
 @dataclass
@@ -228,6 +229,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                         hold_time=10,
                         reverse_positions=11,
                         manual_control=17,
+                        program=121,
                     ),
                 ),
             ),
@@ -250,6 +252,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                         down_position=9,
                         hold_time=10,
                         reverse_positions=11,
+                        program=121,
                     ),
                 ),
             ),
