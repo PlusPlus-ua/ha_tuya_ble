@@ -410,6 +410,25 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ],
         },
     ),
+    "znhsb": TuyaBLECategoryNumberMapping(
+        products={
+            "cdlandip":  # Smart water bottle
+            [
+                TuyaBLENumberMapping(
+                    dp_id=103,
+                    description=NumberEntityDescription(
+                        key="recommended_water_intake",
+                        device_class=NumberDeviceClass.WATER,
+                        native_max_value=5000,
+                        native_min_value=0,
+                        native_unit_of_measurement=VOLUME_MILLILITERS,
+                        native_step=1,
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                ),
+            ],
+        },
+    ),
     "ggq": TuyaBLECategoryNumberMapping(
         products={
             "6pahkcau": [  # Irrigation computer
