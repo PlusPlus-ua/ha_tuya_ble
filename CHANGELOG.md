@@ -62,3 +62,15 @@ and this project adheres to [Semantic Versioning].
 
 - Updated sources to conform Python 3.11
 
+## [0.1.7] - 2023-06-01
+
+### Added
+
+- Added new product_ids.
+- Added full support of BLE TRV provided by @forabi
+- Added support of programming mode for Fingerbot Plus, thanks @redphx for information.
+
+### Changed
+
+- Improved connection stability.
+

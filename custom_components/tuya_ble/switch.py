@@ -20,7 +20,22 @@ from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
-TuyaBLESwitchIsAvailable = Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool] | None
+_LOGGER = logging.getLogger(__name__)
+
+
+TuyaBLESwitchGetter = (
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool | None] | None
+)
+
+
+TuyaBLESwitchIsAvailable = (
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool] | None
+)
+
+
+TuyaBLESwitchSetter = (
+    Callable[["TuyaBLESwitch", TuyaBLEProductInfo, bool], None] | None
+)
 
 
 @dataclass
@@ -31,6 +46,19 @@ class TuyaBLESwitchMapping:
     dp_type: TuyaBLEDataPointType | None = None
     bitmap_mask: bytes | None = None
     is_available: TuyaBLESwitchIsAvailable = None
+    getter: TuyaBLESwitchGetter = None
+    setter: TuyaBLESwitchSetter = None
+
+
+def is_fingerbot_in_program_mode(
+    self: TuyaBLESwitch, product: TuyaBLEProductInfo
+) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 2
+    return result
 
 
 def is_fingerbot_in_switch_mode(
@@ -42,6 +70,31 @@ def is_fingerbot_in_switch_mode(
         if datapoint:
             result = datapoint.value == 1
     return result
+
+
+def get_fingerbot_program_repeat_forever(
+    self: TuyaBLESwitch, product: TuyaBLEProductInfo
+) -> bool | None:
+    result: bool | None = None
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            repeat_count = int.from_bytes(datapoint.value[0:2], "big")
+            result = repeat_count == 0xFFFF
+    return result
+
+
+def set_fingerbot_program_repeat_forever(
+    self: TuyaBLESwitch, product: TuyaBLEProductInfo, value: bool
+) -> None:
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            new_value = (
+                int.to_bytes(0xFFFF if value else 1, 2, "big") + 
+                datapoint.value[2:]
+            )
+            self._hass.create_task(datapoint.set_value(new_value))
 
 
 @dataclass
@@ -129,7 +182,12 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh",
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
                     TuyaBLEReversePositionsMapping(dp_id=11),
@@ -140,6 +198,25 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             icon="mdi:gesture-tap-box",
                             entity_category=EntityCategory.CONFIG,
                         ),
+                    ),
+                    TuyaBLESwitchMapping(
+                        dp_id=2,
+                        description=SwitchEntityDescription(
+                            key="program",
+                            icon="mdi:repeat",
+                        ),
+                        is_available=is_fingerbot_in_program_mode,
+                    ),
+                    TuyaBLESwitchMapping(
+                        dp_id=121,
+                        description=SwitchEntityDescription(
+                            key="program_repeat_forever",
+                            icon="mdi:repeat",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        getter=get_fingerbot_program_repeat_forever,
+                        is_available=is_fingerbot_in_program_mode,
+                        setter=set_fingerbot_program_repeat_forever,
                     ),
                 ],
             ),
@@ -162,62 +239,62 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
     ),
     "wk": TuyaBLECategorySwitchMapping(
         products={
-            "drlajpqc": [  # Thermostatic Radiator Valve
-                TuyaBLESwitchMapping(
-                    dp_id=8,
-                    description=SwitchEntityDescription(
-                        key="window_check",
-                        icon="mdi:window-closed",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+            **dict.fromkeys(
+                [
+                    "drlajpqc",
+                    "nhj2j7su",
+                ],  # Thermostatic Radiator Valve
+                [
+                    TuyaBLESwitchMapping(
+                        dp_id=8,
+                        description=SwitchEntityDescription(
+                            key="window_check",
+                            icon="mdi:window-closed",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=10,
-                    description=SwitchEntityDescription(
-                        key="antifreeze",
-                        icon="mdi:snowflake-off",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=10,
+                        description=SwitchEntityDescription(
+                            key="antifreeze",
+                            icon="mdi:snowflake-off",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=40,
-                    description=SwitchEntityDescription(
-                        key="child_lock",
-                        icon="mdi:account-lock",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=40,
+                        description=SwitchEntityDescription(
+                            key="child_lock",
+                            icon="mdi:account-lock",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=130,
-                    description=SwitchEntityDescription(
-                        key="water_scale_proof",
-                        icon="mdi:water-check",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=130,
+                        description=SwitchEntityDescription(
+                            key="water_scale_proof",
+                            icon="mdi:water-check",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=107,
-                    description=SwitchEntityDescription(
-                        key="programming_mode",
-                        icon="mdi:calendar-edit",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=107,
+                        description=SwitchEntityDescription(
+                            key="programming_mode",
+                            icon="mdi:calendar-edit",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-                TuyaBLESwitchMapping(
-                    dp_id=108,
-                    description=SwitchEntityDescription(
-                        key="programming_switch",
-                        icon="mdi:calendar-clock",
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+                    TuyaBLESwitchMapping(
+                        dp_id=108,
+                        description=SwitchEntityDescription(
+                            key="programming_switch",
+                            icon="mdi:calendar-clock",
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-            ],
+                ],
+            ),
         },
     ),
     "wsdcg": TuyaBLECategorySwitchMapping(
@@ -282,6 +359,10 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
+
+        if self._mapping.getter:
+            return self._mapping.getter(self, self._product)
+
         datapoint = self._device.datapoints[self._mapping.dp_id]
         if datapoint:
             if (
@@ -300,6 +381,9 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
+        if self._mapping.setter:
+            return self._mapping.setter(self, self._product, True)
+
         new_value: bool | bytes
         if self._mapping.bitmap_mask:
             datapoint = self._device.datapoints.get_or_create(
@@ -324,6 +408,9 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
 
     def turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
+        if self._mapping.setter:
+            return self._mapping.setter(self, self._product, False)
+
         new_value: bool | bytes
         if self._mapping.bitmap_mask:
             datapoint = self._device.datapoints.get_or_create(

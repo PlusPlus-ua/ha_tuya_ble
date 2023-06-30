@@ -69,7 +69,12 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh", 
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=2),
                 ],
@@ -88,6 +93,19 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                     TuyaBLEFingerbotModeMapping(dp_id=2),
                 ],
             ),
+        },
+    ),
+    "znhsb": TuyaBLECategoryButtonMapping(
+        products={
+            "cdlandip":  # Smart water bottle
+            [
+                TuyaBLEButtonMapping(
+                    dp_id=109,
+                    description=ButtonEntityDescription(
+                        key="bright_lid_screen",
+                    ),
+                ),
+            ],
         },
     ),
 }

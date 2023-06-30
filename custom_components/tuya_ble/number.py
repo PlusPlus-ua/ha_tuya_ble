@@ -10,13 +10,14 @@ from homeassistant.components.number import (
     NumberEntityDescription,
     NumberEntity,
 )
-from homeassistant.components.number.const import NumberMode
+from homeassistant.components.number.const import NumberDeviceClass, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
     TIME_MINUTES,
     TIME_SECONDS,
+    VOLUME_MILLILITERS,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -36,11 +37,13 @@ TuyaBLENumberGetter = (
 )
 
 
-TuyaBLENumberIsAvailable = Callable[["TuyaBLENumber", TuyaBLEProductInfo], bool] | None
+TuyaBLENumberIsAvailable = (
+    Callable[["TuyaBLENumber", TuyaBLEProductInfo], bool] | None
+)
 
 
 TuyaBLENumberSetter = (
-    Callable[["TuyaBLENumber", TuyaBLEProductInfo, float], bool] | None
+    Callable[["TuyaBLENumber", TuyaBLEProductInfo, float], None] | None
 )
 
 
@@ -55,6 +58,115 @@ class TuyaBLENumberMapping:
     getter: TuyaBLENumberGetter = None
     setter: TuyaBLENumberSetter = None
     mode: NumberMode = NumberMode.BOX
+
+
+def is_fingerbot_in_program_mode(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 2
+    return result
+
+
+def is_fingerbot_not_in_program_mode(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value != 2
+    return result
+
+
+def is_fingerbot_in_push_mode(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> bool:
+    result: bool = True
+    if product.fingerbot:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 0
+    return result
+
+
+def is_fingerbot_repeat_count_available(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> bool:
+    result: bool = True
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.mode]
+        if datapoint:
+            result = datapoint.value == 2
+        if result:
+            datapoint = self._device.datapoints[product.fingerbot.program]
+            if datapoint and type(datapoint.value) is bytes:
+                repeat_count = int.from_bytes(datapoint.value[0:2], "big")
+                result = repeat_count != 0xFFFF
+
+    return result
+
+
+def get_fingerbot_program_repeat_count(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> float | None:
+    result: float | None = None
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            repeat_count = int.from_bytes(datapoint.value[0:2], "big")
+            result = repeat_count * 1.0
+
+    return result
+
+
+def set_fingerbot_program_repeat_count(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+    value: float,
+) -> None:
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            new_value = (
+                int.to_bytes(int(value), 2, "big") +
+                datapoint.value[2:]
+            )
+            self._hass.create_task(datapoint.set_value(new_value))
+
+
+def get_fingerbot_program_position(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+) -> float | None:
+    result: float | None = None
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            result = datapoint.value[2] * 1.0
+
+    return result
+
+
+def set_fingerbot_program_position(
+    self: TuyaBLENumber,
+    product: TuyaBLEProductInfo,
+    value: float,
+) -> None:
+    if product.fingerbot and product.fingerbot.program:
+        datapoint = self._device.datapoints[product.fingerbot.program]
+        if datapoint and type(datapoint.value) is bytes:
+            new_value = bytearray(datapoint.value)
+            new_value[2] = int(value)
+            self._hass.create_task(datapoint.set_value(new_value))
 
 
 @dataclass
@@ -77,15 +189,6 @@ class TuyaBLEUpPositionDescription(NumberEntityDescription):
     native_unit_of_measurement: str = PERCENTAGE
     native_step: float = 1
     entity_category: EntityCategory = EntityCategory.CONFIG
-
-
-def is_fingerbot_in_push_mode(self: TuyaBLENumber, product: TuyaBLEProductInfo) -> bool:
-    result: bool = True
-    if product.fingerbot:
-        datapoint = self._device.datapoints[product.fingerbot.mode]
-        if datapoint:
-            result = datapoint.value == 0
-    return result
 
 
 @dataclass
@@ -183,16 +286,52 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                 ],
             ),
             **dict.fromkeys(
-                ["blliqpsj", "ndvkgsrm", "yiihr7zh"],  # Fingerbot Plus
+                [
+                    "blliqpsj",
+                    "ndvkgsrm",
+                    "yiihr7zh",
+                    "neq16kgd"
+                ],  # Fingerbot Plus
                 [
                     TuyaBLENumberMapping(
                         dp_id=9,
                         description=TuyaBLEDownPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                     TuyaBLEHoldTimeMapping(dp_id=10),
                     TuyaBLENumberMapping(
                         dp_id=15,
                         description=TuyaBLEUpPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
+                    ),
+                    TuyaBLENumberMapping(
+                        dp_id=121,
+                        description=NumberEntityDescription(
+                            key="program_repeats_count",
+                            icon="mdi:repeat",
+                            native_max_value=0xFFFE,
+                            native_min_value=1,
+                            native_step=1,
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        is_available=is_fingerbot_repeat_count_available,
+                        getter=get_fingerbot_program_repeat_count,
+                        setter=set_fingerbot_program_repeat_count,
+                    ),
+                    TuyaBLENumberMapping(
+                        dp_id=121,
+                        description=NumberEntityDescription(
+                            key="program_idle_position",
+                            icon="mdi:repeat",
+                            native_max_value=100,
+                            native_min_value=0,
+                            native_step=1,
+                            native_unit_of_measurement=PERCENTAGE,
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        is_available=is_fingerbot_in_program_mode,
+                        getter=get_fingerbot_program_position,
+                        setter=set_fingerbot_program_position,
                     ),
                 ],
             ),
@@ -210,6 +349,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     TuyaBLENumberMapping(
                         dp_id=9,
                         description=TuyaBLEDownPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                     TuyaBLENumberMapping(
                         dp_id=10,
@@ -222,6 +362,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     TuyaBLENumberMapping(
                         dp_id=15,
                         description=TuyaBLEUpPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
                     ),
                 ],
             ),
@@ -229,21 +370,26 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
     ),
     "wk": TuyaBLECategoryNumberMapping(
         products={
-            "drlajpqc": [  # Thermostatic Radiator Valve
-                TuyaBLENumberMapping(
-                    dp_id=27,
-                    description=NumberEntityDescription(
-                        key="temperature_calibration",
-                        icon="mdi:thermometer-lines",
-                        native_max_value=6,
-                        native_min_value=-6,
-                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-                        native_step=1,
-                        entity_category=EntityCategory.CONFIG,
-                        entity_registry_enabled_default=True,
+            **dict.fromkeys(
+                [
+                    "drlajpqc",
+                    "nhj2j7su",
+                ],  # Thermostatic Radiator Valve
+                [
+                    TuyaBLENumberMapping(
+                        dp_id=27,
+                        description=NumberEntityDescription(
+                            key="temperature_calibration",
+                            icon="mdi:thermometer-lines",
+                            native_max_value=6,
+                            native_min_value=-6,
+                            native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                            native_step=1,
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-            ],
+                ],
+            ),
         },
     ),
     "wsdcg": TuyaBLECategoryNumberMapping(
@@ -264,23 +410,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ],
         },
     ),
-    "ggq": TuyaBLECategoryNumberMapping(
-        products={
-            "6pahkcau": [  # Irrigation computer
-                TuyaBLENumberMapping(
-                    dp_id=5,
-                    description=NumberEntityDescription(
-                        key="countdown_duration",
-                        icon="mdi:timer",
-                        native_max_value=1440,
-                        native_min_value=1,
-                        native_unit_of_measurement=TIME_MINUTES,
-                        native_step=1,
-                    ),
-                ),
-            ],
-        },
-    ),}
+}
 
 
 def get_mapping_by_device(device: TuyaBLEDevice) -> list[TuyaBLECategoryNumberMapping]:
@@ -327,8 +457,8 @@ class TuyaBLENumber(TuyaBLEEntity, NumberEntity):
     def set_native_value(self, value: float) -> None:
         """Set new value."""
         if self._mapping.setter:
-            if self._mapping.setter(self, self._product, value):
-                return
+            self._mapping.setter(self, self._product, value)
+            return
         int_value = int(value * self._mapping.coefficient)
         datapoint = self._device.datapoints.get_or_create(
             self._mapping.dp_id,
@@ -345,22 +475,6 @@ class TuyaBLENumber(TuyaBLEEntity, NumberEntity):
         if result and self._mapping.is_available:
             result = self._mapping.is_available(self, self._product)
         return result
-
-
-class TuyaBLEFingerbotPosition(TuyaBLENumber, RestoreEntity):
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        coordinator: DataUpdateCoordinator,
-        device: TuyaBLEDevice,
-        mapping: TuyaBLENumberMapping,
-    ) -> None:
-        super().__init__(hass, coordinator, device, mapping)
-
-    async def async_internal_added_to_hass(self) -> None:
-        """Register this entity as a restorable entity."""
-        last_state = await self.async_get_last_state()
-        self._attr_native_value = last_state.state
 
 
 async def async_setup_entry(

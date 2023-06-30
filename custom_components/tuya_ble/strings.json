@@ -52,23 +52,40 @@
       },
       "up_position": {
         "name": "Up position"
+      },
+      "recommended_water_intake": {
+        "name": "Recommended water intake"
+      },
+      "program_repeats_count": {
+        "name": "Repeats count"
+      },
+      "program_idle_position": {
+        "name": "Idle position"
       }
     },
     "select": {
       "fingerbot_mode": {
         "name": "Mode",
         "state": {
+          "program": "Program",
           "push": "Push",
           "switch": "[%key:component::switch::entity_component::_::name%]"
         }
       },
       "temperature_unit": {
         "name": "Temperature unit"
+      },
+      "reminder_mode": {
+        "name": "Reminder mode",
+        "state": {
+          "interval_reminder": "Interval",
+          "schedule_reminder": "Schedule"
+        }
       }
     },
     "binary_sensor": {
       "low_battery": {
-        "name": "Is battery low?"
+        "name": "[%key:component::sensor::entity_component::battery::name%]"
       }
     },
     "sensor": {
@@ -112,15 +129,30 @@
       },
       "temperature": {
         "name": "[%key:component::sensor::entity_component::temperature::name%]"
+      },
+      "water_intake": {
+        "name": "Water intake"
       }
     },
     "switch": {
-      "programming_mode": { "name": "Programming Mode" },
-      "programming_switch": { "name": "Programming Switch" },
-      "antifreeze": { "name": "Antifreeze" },
-      "child_lock": { "name": "Child Lock" },
-      "window_check": { "name": "Window Check" },
-      "water_scale_proof": { "name": "Anti-scale" },
+      "programming_mode": {
+        "name": "Programming Mode" 
+      },
+      "programming_switch": {
+        "name": "Programming Switch"
+      },
+      "antifreeze": {
+        "name": "Antifreeze"
+      },
+      "child_lock": {
+        "name": "Child Lock"
+      },
+      "window_check": {
+        "name": "Window Check"
+      },
+      "water_scale_proof": {
+        "name": "Anti-scale"
+      },
       "carbon_dioxide_alarm_switch": {
         "name": "Alarm enabled"
       },
@@ -133,11 +165,22 @@
       "manual_control": {
         "name": "Manual control"
       },
+      "program": {
+        "name": "Program"
+      },
+      "program_repeat_forever": {
+        "name": "Repeat forever"
+      },      
       "reverse_positions": {
         "name": "Reverse positions"
       },
       "switch": {
         "name": "[%key:component::switch::entity_component::_::name%]"
+      }
+    },
+    "text": {
+      "program": {
+        "name": "Program: position[/time];..."
       }
     }
   },

@@ -16,7 +16,6 @@ class TuyaBLEDeviceCredentials:
     product_name: str | None
 
     def __str__(self):
-        print('str called')
         return (
             "uuid: xxxxxxxxxxxxxxxx, "
             "local_key: xxxxxxxxxxxxxxxx, "

@@ -23,11 +23,12 @@ The integration works locally, but connection to Tuya BLE device requires device
 * Fingerbots (category_id 'szjqr')
   + Fingerbot (product_ids 'ltak7e1p', 'y6kttvd6', 'yrnk7mnn', 'nvr2rocq', 'bnt7wajf', 'rvdceqjh', '5xhbk964'), original device, first in category, powered by CR2 battery.
   + Adaprox Fingerbot (product_id 'y6kttvd6'), built-in battery with USB type C charging.
-  + Fingerbot Plus (product_ids 'blliqpsj', 'yiihr7zh'), almost same as original, has sensor button for manual control.
+  + Fingerbot Plus (product_ids 'blliqpsj', 'ndvkgsrm', 'yiihr7zh', 'neq16kgd'), almost same as original, has sensor button for manual control.
   + CubeTouch 1s (product_id '3yqdo5yt'), built-in battery with USB type C charging.
   + CubeTouch II (product_id 'xhf790if'), built-in battery with USB type C charging.
 
-  All features available in Home Assistant, except programming (series of actions) - it's not documented and looks useless because it could be implemented by Home Assistant scripts or automations.
+  All features available in Home Assistant, programming (series of actions) is implemented for Fingerbot Plus.
+  For programming exposed entities 'Program' (switch), 'Repeat forever', 'Repeats count', 'Idle position' and 'Program' (text). Format of program text is: 'position\[/time\];...' where position is in percents, optional time is in seconds (zero if missing).
 
 * Temperature and humidity sensors (category_id 'wsdcg')
   + Soil moisture sensor (product_id 'ojzlzzsw').
@@ -39,7 +40,10 @@ The integration works locally, but connection to Tuya BLE device requires device
   + Smart Lock (product_id 'ludzroix'), first attempt to support for now.
 
 * Climate (category_id 'wk')
-  + Thermostatic Radiator Valve (product_id 'drlajpqc'), first attempt to support for now.
+  + Thermostatic Radiator Valve (product_ids 'drlajpqc', 'nhj2j7su').
+
+* Smart water bottle (category_id 'znhsb')
+  + Smart water bottle (product_id 'cdlandip')
 
 ## Support project
 
