@@ -61,6 +61,9 @@
       },
       "program_idle_position": {
         "name": "Idle position"
+      },
+      "countdown_duration": {
+        "name": "Irrigation duration"
       }
     },
     "select": {
@@ -132,6 +135,9 @@
       },
       "water_intake": {
         "name": "Water intake"
+      },
+      "time_left": {
+          "name": "Remaining irrigation time"
       }
     },
     "switch": {
@@ -176,7 +182,10 @@
       },
       "switch": {
         "name": "[%key:component::switch::entity_component::_::name%]"
-      }
+      },            
+      "water_valve": {
+          "name": "Irrigation valve"
+      }    
     },
     "text": {
       "program": {

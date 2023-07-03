@@ -66,9 +66,6 @@
             },
             "up_position": {
                 "name": "Up position"
-            },
-            "countdown_duration": {
-                "name": "Irrigation duration"
             }
         },
         "select": {
@@ -135,9 +132,6 @@
             },
             "water_intake": {
                 "name": "Water intake"
-            },
-            "time_left": {
-                "name": "Remaining irrigation time"
             }
         },
         "switch": {
@@ -187,10 +181,7 @@
         "text": {
             "program": {
                 "name": "Program: position[/time];..."
-            },            
-            "water_valve": {
-                "name": "Irrigation valve"
-            }     
+            }
         }
     },
     "options": {
