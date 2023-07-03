@@ -46,6 +46,9 @@
             "carbon_dioxide_alarm_level": {
                 "name": "Alarm level"
             },
+            "countdown_duration": {
+                "name": "Irrigation duration"
+            },
             "down_position": {
                 "name": "Down position"
             },
@@ -130,6 +133,9 @@
             "temperature": {
                 "name": "Temperature"
             },
+            "time_left": {
+                "name": "Remaining irrigation time"
+            },
             "water_intake": {
                 "name": "Water intake"
             }
@@ -173,6 +179,9 @@
             },
             "water_scale_proof": {
                 "name": "Anti-scale"
+            },
+            "water_valve": {
+                "name": "Irrigation valve"
             },
             "window_check": {
                 "name": "Window Check"
