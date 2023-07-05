@@ -147,20 +147,24 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
     ),
     "ms": TuyaBLECategorySensorMapping(
         products={
-            "ludzroix": [  # Smart Lock
-                TuyaBLESensorMapping(
-                    dp_id=21,
-                    description=SensorEntityDescription(
-                        key="alarm_lock",
-                        device_class=SensorDeviceClass.ENUM,
-                        options=[
-                            "wrong_finger",
-                            "wrong_password",
-                            "low_battery",
-                        ],
+            **dict.fromkeys(
+                ["ludzroix", "isk2p555"], # Smart Lock
+                [
+                    TuyaBLESensorMapping(
+                        dp_id=21,
+                        description=SensorEntityDescription(
+                            key="alarm_lock",
+                            device_class=SensorDeviceClass.ENUM,
+                            options=[
+                                "wrong_finger",
+                                "wrong_password",
+                                "low_battery",
+                            ],
+                        ),
                     ),
-                ),
-            ]
+                    TuyaBLEBatteryMapping(dp_id=8),
+                ],
+            ),
         }
     ),
     "szjqr": TuyaBLECategorySensorMapping(

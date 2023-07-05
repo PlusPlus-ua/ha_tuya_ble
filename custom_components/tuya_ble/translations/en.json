@@ -86,6 +86,9 @@
             },
             "temperature_unit": {
                 "name": "Temperature unit"
+            },
+            "beep_volume": {
+                "name": "Lock Volume"
             }
         },
         "sensor": {
@@ -132,6 +135,21 @@
             },
             "water_intake": {
                 "name": "Water intake"
+            },
+            "residual_electricity": {
+                "name": "Battery"
+            },
+            "alarm_lock": {
+                "name": "Alarm"
+            },
+            "wrong_finger": {
+                "name": "Wrong Fingerprint"
+            },
+            "wrong_password": {
+                "name": "Wrong Password"
+            },
+            "low_battery": {
+                "name": "Low battery"
             }
         },
         "switch": {
@@ -176,7 +194,11 @@
             },
             "window_check": {
                 "name": "Window Check"
+            },
+            "lock_motor_state": {
+                "name": "Motor State"
             }
+
         },
         "text": {
             "program": {
