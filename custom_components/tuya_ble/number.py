@@ -429,6 +429,23 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ],
         },
     ),
+    "ggq": TuyaBLECategoryNumberMapping(
+        products={
+            "6pahkcau": [  # Irrigation computer
+                TuyaBLENumberMapping(
+                    dp_id=5,
+                    description=NumberEntityDescription(
+                        key="countdown_duration",
+                        icon="mdi:timer",
+                        native_max_value=1440,
+                        native_min_value=1,
+                        native_unit_of_measurement=TIME_MINUTES,
+                        native_step=1,
+                    ),
+                ),
+            ],
+        },
+    ),
 }
 
 
