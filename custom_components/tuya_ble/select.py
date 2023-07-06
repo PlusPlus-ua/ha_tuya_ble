@@ -84,22 +84,24 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
     ),
     "ms": TuyaBLECategorySelectMapping(
         products={
-            "ludzroix":  # Smart Lock
-            [
-                TuyaBLESelectMapping(
-                    dp_id=31,
-                    description=SelectEntityDescription(
-                        key="beep_volume",
-                        options=[
-                            "mute",
-                            "low",
-                            "normal",
-                            "high",
-                        ],
-                        entity_category=EntityCategory.CONFIG,
+            **dict.fromkeys(
+                ["ludzroix", "isk2p555"], # Smart Lock
+                [
+                    TuyaBLESelectMapping(
+                        dp_id=31,
+                        description=SelectEntityDescription(
+                            key="beep_volume",
+                            options=[
+                                "mute",
+                                "low",
+                                "normal",
+                                "high",
+                            ],
+                            entity_category=EntityCategory.CONFIG,
+                        ),
                     ),
-                ),
-            ]
+                ]
+            ),
         }
     ),
     "szjqr": TuyaBLECategorySelectMapping(

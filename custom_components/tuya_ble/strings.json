@@ -84,6 +84,9 @@
           "interval_reminder": "Interval",
           "schedule_reminder": "Schedule"
         }
+      },
+      "beep_volume": {
+          "name": "Lock Volume"
       }
     },
     "binary_sensor": {
@@ -136,6 +139,21 @@
       "water_intake": {
         "name": "Water intake"
       },
+      "residual_electricity": {
+          "name": "Battery"
+      },
+      "alarm_lock": {
+          "name": "Alarm"
+      },
+      "wrong_finger": {
+          "name": "Wrong Fingerprint"
+      },
+      "wrong_password": {
+          "name": "Wrong Password"
+      },
+      "low_battery": {
+          "name": "Low Battery"
+      },
       "time_left": {
           "name": "Remaining irrigation time"
       }
@@ -182,6 +200,9 @@
       },
       "switch": {
         "name": "[%key:component::switch::entity_component::_::name%]"
+      },
+      "lock_motor_state": {
+          "name": "Motor State"
       },            
       "water_valve": {
           "name": "Irrigation valve"
