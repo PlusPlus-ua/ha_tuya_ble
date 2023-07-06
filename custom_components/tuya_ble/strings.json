@@ -61,6 +61,9 @@
       },
       "program_idle_position": {
         "name": "Idle position"
+      },
+      "countdown_duration": {
+        "name": "Irrigation duration"
       }
     },
     "select": {
@@ -150,6 +153,9 @@
       },
       "low_battery": {
           "name": "Low Battery"
+      },
+      "time_left": {
+          "name": "Remaining irrigation time"
       }
     },
     "switch": {
@@ -197,7 +203,10 @@
       },
       "lock_motor_state": {
           "name": "Motor State"
-      }
+      },            
+      "water_valve": {
+          "name": "Irrigation valve"
+      }    
     },
     "text": {
       "program": {
