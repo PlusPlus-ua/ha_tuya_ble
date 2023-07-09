@@ -267,21 +267,7 @@ class TuyaBLEDevice:
         _LOGGER.debug("%s: Initializing", self.address)
         if await self._update_device_info():
             self._decode_advertisement_data()
-
-        await self.update()
-    '''
-    async def _start_session(self) -> None:
-        _LOGGER.debug("%s: Sending device info request", self.address)
-        await self._send_packet(TuyaBLECode.FUN_SENDER_DEVICE_INFO, bytes(0))
-
-        await self.pair()
-
-        # gives an ability to receive and handle timestamp request
-        # and first datapoints
-        await asyncio.sleep(0.5)
-
-        await self.update()
-    '''
+            
     def _build_pairing_request(self) -> bytes:
         result = bytearray()
 
@@ -554,6 +540,8 @@ class TuyaBLEDevice:
     async def _ensure_connected(self) -> None:
         """Ensure connection to device is established."""
         global global_connect_lock
+        if self._expected_disconnect:
+            return
         if self._connect_lock.locked():
             _LOGGER.debug(
                 "%s: Connection already in progress,"
@@ -692,7 +680,11 @@ class TuyaBLEDevice:
         async with self._seq_num_lock:
             self._current_seq_num = 1
         try:
+            if self._expected_disconnect:
+                return
             await self._ensure_connected()
+            if self._expected_disconnect:
+                return
             _LOGGER.debug("%s: Reconnect, connection ensured", self.address)
         except BLEAK_EXCEPTIONS:  # BleakNotFoundError:
             _LOGGER.debug(
@@ -813,7 +805,11 @@ class TuyaBLEDevice:
         # retry: int | None = None,
     ) -> None:
         """Send packet to device and optional read response."""
+        if self._expected_disconnect:
+            return
         await self._ensure_connected()
+        if self._expected_disconnect:
+            return
         await self._send_packet_while_connected(code, data, 0, wait_for_response)
 
     async def _send_response(
@@ -905,7 +901,11 @@ class TuyaBLEDevice:
                 raise
 
     async def _resend_packets(self, packets: list[bytes]) -> None:
+        if self._expected_disconnect:
+            return
         await self._ensure_connected()
+        if self._expected_disconnect:
+            return
         await self._int_send_packet_while_connected(packets)
 
     async def _send_packets_locked(self, packets: list[bytes]) -> None:

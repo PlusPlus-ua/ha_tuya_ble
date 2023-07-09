@@ -74,3 +74,14 @@ and this project adheres to [Semantic Versioning].
 
 - Improved connection stability.
 
+## [0.1.8] - 2023-07-09
+
+### Added
+
+- Added support of 'Irrigation computer', thanks to @SanMiggel.
+- Added new product_ids for Smart locks, thanks to @drewpo28.
+
+### Changed
+
+- Connection to the device is postponed now. Previously some out of range device might prevents HA from fully booting.
+- Improved connection stability.
