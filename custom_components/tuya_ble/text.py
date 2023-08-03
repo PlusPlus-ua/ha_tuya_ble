@@ -150,7 +150,7 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
                     description=TextEntityDescription(
                         key="unlock_fingerprint",
                         icon="mdi:fingerprint}",
-                        pattern="^[1-9][0-9]{1,2}$|^\d$",
+                        entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                 ),
             ]
