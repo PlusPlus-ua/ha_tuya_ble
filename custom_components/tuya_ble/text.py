@@ -142,6 +142,20 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
             ),
         },
     ),
+    "jtmspro": TuyaBLECategoryTextMapping(
+        products={
+            "xicdxood": [  # Raycube K7 Pro+
+                TuyaBLETextMapping(
+                    dp_id=12,
+                    description=TextEntityDescription(
+                        key="unlock_fingerprint",
+                        icon="mdi:fingerprint}",
+                        pattern="^[1-9][0-9]{1,2}$|^\d$",
+                    ),
+                ),
+            ]
+        },
+    ),
 }
 
 

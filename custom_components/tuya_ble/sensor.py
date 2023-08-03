@@ -168,6 +168,37 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
             ),
         }
     ),
+    "jtmspro": TuyaBLECategorySensorMapping(
+        products={
+            "xicdxood":  # Raycube K7 Pro+
+            [
+                TuyaBLESensorMapping(
+                    dp_id=21,
+                    description=SensorEntityDescription(
+                        key="alarm_lock",
+                        device_class=SensorDeviceClass.ENUM,
+                        options=[
+                            "wrong_finger",
+                            "wrong_password",
+                            "wrong_card",
+                            "wrong_face",
+                            "tongue_bad",
+                            "too_hot",
+                            "unclosed_time",
+                            "tongue_not_out",
+                            "pry",
+                            "key_in",
+                            "low_battery",
+                            "power_off",
+                            "shock",
+                            "defense",
+                        ],
+                    ),
+                ),
+                TuyaBLEBatteryMapping(dp_id=8),
+            ],
+        }
+    ),
     "szjqr": TuyaBLECategorySensorMapping(
         products={
             **dict.fromkeys(

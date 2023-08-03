@@ -104,6 +104,26 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
             ),
         }
     ),
+    "jtmspro": TuyaBLECategorySelectMapping(
+        products={
+            "xicdxood":  # Raycube K7 Pro+
+            [
+                TuyaBLESelectMapping(
+                    dp_id=31,
+                    description=SelectEntityDescription(
+                        key="beep_volume",
+                        options=[
+                            "mute",
+                            "low",
+                            "normal",
+                            "high",
+                        ],
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                ),
+            ],
+        }
+    ),
     "szjqr": TuyaBLECategorySelectMapping(
         products={
             **dict.fromkeys(
