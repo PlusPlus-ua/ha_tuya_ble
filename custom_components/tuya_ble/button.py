@@ -108,6 +108,49 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
             ],
         },
     ),
+    "jtmspro": TuyaBLECategoryButtonMapping(
+        products={
+            "xicdxood":  # Raycube K7 Pro+
+            [
+                TuyaBLEButtonMapping(
+                    dp_id=1,
+                    description=ButtonEntityDescription(
+                        key="unlock_method_create",
+                    ),
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=2,
+                    description=ButtonEntityDescription(
+                        key="unlock_method_delete",
+                    ),
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=3,
+                    description=ButtonEntityDescription(
+                        key="unlock_method_modify",
+                    ),
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=54,
+                    description=ButtonEntityDescription(
+                        key="synch_method",
+                    ),
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=70,
+                    description=ButtonEntityDescription(
+                        key="check_code_set",
+                    ),
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=71,
+                    description=ButtonEntityDescription(
+                        key="ble_unlock_check",
+                    ),
+                ),
+            ],
+        },
+    ),
 }
 
 
