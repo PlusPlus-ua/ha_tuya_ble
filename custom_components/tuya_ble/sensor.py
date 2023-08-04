@@ -241,6 +241,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                         key="lock_motor_state",
                         icon="mdi:lock-outline",
                     ),
+                ),
                 TuyaBLEBatteryMapping(dp_id=8),
             ],
         }
