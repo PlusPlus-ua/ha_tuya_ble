@@ -235,13 +235,6 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                         entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                 ),
-                TuyaBLESensorMapping(
-                    dp_id=47,
-                    description=SensorEntityDescription(
-                        key="lock_motor_state",
-                        icon="mdi:lock-outline",
-                    ),
-                ),
                 TuyaBLEBatteryMapping(dp_id=8),
             ],
         }
