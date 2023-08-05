@@ -173,7 +173,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
             "xicdxood":  # Raycube K7 Pro+
             [
                 TuyaBLESensorMapping(
-                    dp_id=21,
+                    dp_id=21, # Requires more testing
                     description=SensorEntityDescription(
                         key="alarm_lock",
                         device_class=SensorDeviceClass.ENUM,
@@ -196,43 +196,24 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                     ),
                 ),
                 TuyaBLESensorMapping(
-                    dp_id=12,
+                    dp_id=12, # Retrieve last fingerprint used
                     description=SensorEntityDescription(
                         key="unlock_fingerprint",
                         icon="mdi:fingerprint",
-                        entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                 ),
                 TuyaBLESensorMapping(
-                    dp_id=15,
+                    dp_id=15, # Retrieve last card used
                     description=SensorEntityDescription(
                         key="unlock_card",
                         icon="mdi:nfc-variant",
-                        entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                 ),
                 TuyaBLESensorMapping(
-                    dp_id=14,
-                    description=SensorEntityDescription(
-                        key="unlock_dynamic",
-                        icon="mdi:keyboard-settings-outline",
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                    ),
-                ),
-                TuyaBLESensorMapping(
-                    dp_id=12,
-                    description=SensorEntityDescription(
-                        key="unlock_ble",
-                        icon="mdi:bluetooth-connect",
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                    ),
-                ),
-                TuyaBLESensorMapping(
-                    dp_id=13,
+                    dp_id=13, # Retrieve last code used
                     description=SensorEntityDescription(
                         key="unlock_password",
                         icon="mdi:keyboard-outline",
-                        entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                 ),
                 TuyaBLEBatteryMapping(dp_id=8),

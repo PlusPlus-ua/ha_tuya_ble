@@ -180,10 +180,9 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             "xicdxood":  # Raycube K7 Pro+
             [
                 TuyaBLESwitchMapping(
-                    dp_id=71,
+                    dp_id=44,
                     description=SensorEntityDescription(
-                        key="ble_unlock_check",
-                        icon="mdi:lock-outline",
+                        key="rtc_lock",
                     ),
                 ),
             ],
