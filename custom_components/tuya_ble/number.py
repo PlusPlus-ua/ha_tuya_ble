@@ -429,34 +429,6 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ],
         },
     ),
-    "jtmspro": TuyaBLECategoryNumberMapping(
-        products={
-            "xicdxood":  # Raycube K7 Pro+
-            [
-                TuyaBLENumberMapping(
-                    dp_id=12, # Retrieve last fingerprint used
-                    description=NumberEntityDescription(
-                        key="unlock_fingerprint",
-                        icon="mdi:fingerprint",
-                    ),
-                ),
-                TuyaBLENumberMapping(
-                    dp_id=15, # Retrieve last card used
-                    description=NumberEntityDescription(
-                        key="unlock_card",
-                        icon="mdi:nfc-variant",
-                    ),
-                ),
-                TuyaBLENumberMapping(
-                    dp_id=13, # Retrieve last code used
-                    description=NumberEntityDescription(
-                        key="unlock_password",
-                        icon="mdi:keyboard-outline",
-                    ),
-                ),
-            ],
-        }
-    ),
 }
 
 

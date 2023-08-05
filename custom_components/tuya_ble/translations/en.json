@@ -1,253 +1,251 @@
 {
     "config": {
-      "abort": {
-        "no_unconfigured_devices": "No unconfigured devices found."
-      },
-      "error": {
-        "device_not_registered": "Device is not registered in Tuya cloud",
-        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-        "login_error": "Login error ({code}): {msg}"
-      },
-      "flow_title": "{name}",
-      "step": {
-        "device": {
-          "data": {
-            "address": "Tuya BLE device"
-          },
-          "description": "Select Tuya BLE device to setup. Device must be registered in the cloud using the mobile application. It's better to unbind the device from Tuya Bluetooth gateway, if any."
+        "abort": {
+            "no_unconfigured_devices": "No unconfigured devices found."
         },
-        "login": {
-          "data": {
-            "access_id": "Tuya IoT Access ID",
-            "access_secret": "Tuya IoT Access Secret",
-            "country_code": "Country",
-            "password": "[%key:common::config_flow::data::password%]",
-            "username": "Account"
-          },
-          "description": "Tuya BLE requires obtaining encryption key from Tuya cloud. Almost all devices only need to access the cloud once during setup.\n\nRefer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+        "error": {
+            "device_not_registered": "Device is not registered in Tuya cloud",
+            "invalid_auth": "Invalid authentication",
+            "login_error": "Login error ({code}): {msg}"
+        },
+        "flow_title": "{name}",
+        "step": {
+            "device": {
+                "data": {
+                    "address": "Tuya BLE device"
+                },
+                "description": "Select Tuya BLE device to setup. Device must be registered in the cloud using the mobile application. It's better to unbind the device from Tuya Bluetooth gateway, if any."
+            },
+            "login": {
+                "data": {
+                    "access_id": "Tuya IoT Access ID",
+                    "access_secret": "Tuya IoT Access Secret",
+                    "country_code": "Country",
+                    "password": "Password",
+                    "username": "Account"
+                },
+                "description": "Tuya BLE requires obtaining encryption key from Tuya cloud. Almost all devices only need to access the cloud once during setup.\n\nRefer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+            }
         }
-      }
     },
     "entity": {
-      "button": {
-        "push": {
-          "name": "Push"
-        }
-      },
-      "number": {
-        "brightness": {
-          "name": "[%key:component::light::entity_component::_::state_attributes::brightness::name%]"
+        "binary_sensor": {
+            "low_battery": {
+                "name": "Battery"
+            }
         },
-        "carbon_dioxide_alarm_level": {
-          "name": "Alarm level"
+        "button": {
+            "push": {
+                "name": "Push"
+            }
         },
-        "down_position": {
-          "name": "Down position"
+        "number": {
+            "brightness": {
+                "name": "Brightness"
+            },
+            "carbon_dioxide_alarm_level": {
+                "name": "Alarm level"
+            },
+            "countdown_duration": {
+                "name": "Irrigation duration"
+            },
+            "down_position": {
+                "name": "Down position"
+            },
+            "hold_time": {
+                "name": "Hold time"
+            },
+            "program_idle_position": {
+                "name": "Idle position"
+            },
+            "program_repeats_count": {
+                "name": "Repeats count"
+            },
+            "recommended_water_intake": {
+                "name": "Recommended water intake"
+            },
+            "reporting_period": {
+                "name": "Reporting period"
+            },
+            "up_position": {
+                "name": "Up position"
+            }      ,
+            "ble_unlock_check": {
+              "name": "Unlock"
+            }
         },
-        "hold_time": {
-          "name": "Hold time"
+        "select": {
+            "beep_volume": {
+                "name": "Lock Volume"
+            },
+            "language": {
+                "name": "Lock Language"
+            },
+            "fingerbot_mode": {
+                "name": "Mode",
+                "state": {
+                    "program": "Program",
+                    "push": "Push",
+                    "switch": "Switch"
+                }
+            },
+            "reminder_mode": {
+                "name": "Reminder mode",
+                "state": {
+                    "interval_reminder": "Interval",
+                    "schedule_reminder": "Schedule"
+                }
+            },
+            "temperature_unit": {
+                "name": "Temperature unit"
+            }
         },
-        "reporting_period": {
-          "name": "Reporting period"
-        },
-        "up_position": {
-          "name": "Up position"
-        },
-        "recommended_water_intake": {
-          "name": "Recommended water intake"
-        },
-        "program_repeats_count": {
-          "name": "Repeats count"
-        },
-        "program_idle_position": {
-          "name": "Idle position"
-        },
-        "countdown_duration": {
-          "name": "Irrigation duration"
-        }
-        ,
-        "ble_unlock_check": {
-          "name": "Unlock"
-        }
-      },
-      "select": {
-        "fingerbot_mode": {
-          "name": "Mode",
-          "state": {
-            "program": "Program",
-            "push": "Push",
-            "switch": "[%key:component::switch::entity_component::_::name%]"
-          }
-        },
-        "temperature_unit": {
-          "name": "Temperature unit"
-        },
-        "reminder_mode": {
-          "name": "Reminder mode",
-          "state": {
-            "interval_reminder": "Interval",
-            "schedule_reminder": "Schedule"
-          }
-        },
-        "beep_volume": {
-            "name": "Lock Volume"
-        },
-        "language": {
-            "name": "Lock Language"
-        }
-      },
-      "binary_sensor": {
-        "low_battery": {
-          "name": "[%key:component::sensor::entity_component::battery::name%]"
-        }
-      },
-      "sensor": {
-        "battery": {
-          "name": "[%key:component::sensor::entity_component::battery::name%]"
-        },
-        "battery_charging": {
-          "name": "Battery charging",
-          "state": {
-            "charged": "Charged",
-            "charging": "[%key:component::binary_sensor::entity_component::battery_charging::state::on%]",
-            "not_charging": "[%key:component::binary_sensor::entity_component::battery_charging::state::off%]"
-          }
-        },
-        "battery_state": {
-          "name": "Battery state",
-          "state": {
-            "high": "High",
-            "low": "[%key:component::binary_sensor::entity_component::battery::state::on%]",
-            "normal": "[%key:component::binary_sensor::entity_component::battery::state::off%]"
-          }
-        },
-        "carbon_dioxide": {
-          "name": "[%key:component::sensor::entity_component::carbon_dioxide::name%]"
-        },
-        "carbon_dioxide_alarm": {
-          "name": "Carbon dioxide level",
-          "state": {
-            "alarm": "Alarm",
-            "normal": "Normal"
-          }
-        },
-        "humidity": {
-          "name": "[%key:component::sensor::entity_component::humidity::name%]"
-        },
-        "moisture": {
-          "name": "[%key:component::sensor::entity_component::moisture::name%]"
-        },
-        "signal_strength": {
-          "name": "[%key:component::sensor::entity_component::signal_strength::name%]"
-        },
-        "temperature": {
-          "name": "[%key:component::sensor::entity_component::temperature::name%]"
-        },
-        "water_intake": {
-          "name": "Water intake"
-        },
-        "residual_electricity": {
-            "name": "Battery"
-        },
-        "alarm_lock": {
-            "name": "Alarm"
-        },
-        "wrong_finger": {
-            "name": "Wrong Fingerprint"
-        },
-        "wrong_password": {
-            "name": "Wrong Password"
-        },
-        "low_battery": {
-            "name": "Low Battery"
-        },
-        "time_left": {
-            "name": "Remaining irrigation time"
-        },
-        "unlock_fingerprint": {
-            "name": "Last used Fingerprint"
-        },
-        "unlock_card": {
-            "name": "Last used Card"
-        },
-        "unlock_password": {
-            "name": "Last used Password"
-        }
-      },
-      "switch": {
-        "programming_mode": {
-          "name": "Programming Mode" 
-        },
-        "programming_switch": {
-          "name": "Programming Switch"
-        },
-        "antifreeze": {
-          "name": "Antifreeze"
-        },
-        "child_lock": {
-          "name": "Child Lock"
-        },
-        "window_check": {
-          "name": "Window Check"
-        },
-        "water_scale_proof": {
-          "name": "Anti-scale"
-        },
-        "carbon_dioxide_alarm_switch": {
-          "name": "Alarm enabled"
-        },
-        "carbon_dioxide_severely_exceed_alarm": {
-          "name": "Severely exceed alarm"
-        },
-        "low_battery_alarm": {
-          "name": "Low battery alarm"
-        },
-        "manual_control": {
-          "name": "Manual control"
-        },
-        "program": {
-          "name": "Program"
-        },
-        "program_repeat_forever": {
-          "name": "Repeat forever"
-        },      
-        "reverse_positions": {
-          "name": "Reverse positions"
+        "sensor": {
+            "alarm_lock": {
+                "name": "Alarm"
+            },
+            "battery": {
+                "name": "Battery"
+            },
+            "battery_charging": {
+                "name": "Battery charging",
+                "state": {
+                    "charged": "Charged",
+                    "charging": "Charging",
+                    "not_charging": "Not charging"
+                }
+            },
+            "battery_state": {
+                "name": "Battery state",
+                "state": {
+                    "high": "High",
+                    "low": "Low",
+                    "normal": "Normal"
+                }
+            },
+            "carbon_dioxide": {
+                "name": "Carbon dioxide"
+            },
+            "carbon_dioxide_alarm": {
+                "name": "Carbon dioxide level",
+                "state": {
+                    "alarm": "Alarm",
+                    "normal": "Normal"
+                }
+            },
+            "humidity": {
+                "name": "Humidity"
+            },
+            "low_battery": {
+                "name": "Low Battery"
+            },
+            "moisture": {
+                "name": "Moisture"
+            },
+            "residual_electricity": {
+                "name": "Battery"
+            },
+            "signal_strength": {
+                "name": "Signal strength"
+            },
+            "temperature": {
+                "name": "Temperature"
+            },
+            "time_left": {
+                "name": "Remaining irrigation time"
+            },
+            "water_intake": {
+                "name": "Water intake"
+            },
+            "wrong_finger": {
+                "name": "Wrong Fingerprint"
+            },
+            "wrong_password": {
+                "name": "Wrong Password"
+            },
+            "unlock_fingerprint": {
+                "name": "Last used Fingerprint"
+            },
+            "unlock_card": {
+                "name": "Last used Card"
+            },
+            "unlock_password": {
+                "name": "Last used Password"
+            }
         },
         "switch": {
-          "name": "[%key:component::switch::entity_component::_::name%]"
+            "antifreeze": {
+                "name": "Antifreeze"
+            },
+            "carbon_dioxide_alarm_switch": {
+                "name": "Alarm enabled"
+            },
+            "carbon_dioxide_severely_exceed_alarm": {
+                "name": "Severely exceed alarm"
+            },
+            "child_lock": {
+                "name": "Child Lock"
+            },
+            "lock_motor_state": {
+                "name": "Motor State"
+            },
+            "low_battery_alarm": {
+                "name": "Low battery alarm"
+            },
+            "manual_control": {
+                "name": "Manual control"
+            },
+            "program": {
+                "name": "Program"
+            },
+            "program_repeat_forever": {
+                "name": "Repeat forever"
+            },
+            "programming_mode": {
+                "name": "Programming Mode"
+            },
+            "programming_switch": {
+                "name": "Programming Switch"
+            },
+            "reverse_positions": {
+                "name": "Reverse positions"
+            },
+            "switch": {
+                "name": "Switch"
+            },
+            "water_scale_proof": {
+                "name": "Anti-scale"
+            },
+            "water_valve": {
+                "name": "Irrigation valve"
+            },
+            "window_check": {
+                "name": "Window Check"
+            }
         },
-        "lock_motor_state": {
-            "name": "Motor State"
-        },            
-        "water_valve": {
-            "name": "Irrigation valve"
-        }    
-      },
-      "text": {
-        "program": {
-          "name": "Program: position[/time];..."
+        "text": {
+            "program": {
+                "name": "Program: position[/time];..."
+            }
         }
-      }
     },
     "options": {
-      "error": {
-        "device_not_registered": "Device is not registered in Tuya cloud",
-        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-        "login_error": "Login error ({code}): {msg}"
-      },
-      "step": {
-        "login": {
-          "data": {
-            "access_id": "Tuya IoT Access ID",
-            "access_secret": "Tuya IoT Access Secret",
-            "country_code": "Country",
-            "password": "[%key:common::config_flow::data::password%]",
-            "username": "Account"
-          },
-          "description": "Refer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+        "error": {
+            "device_not_registered": "Device is not registered in Tuya cloud",
+            "invalid_auth": "Invalid authentication",
+            "login_error": "Login error ({code}): {msg}"
+        },
+        "step": {
+            "login": {
+                "data": {
+                    "access_id": "Tuya IoT Access ID",
+                    "access_secret": "Tuya IoT Access Secret",
+                    "country_code": "Country",
+                    "password": "Password",
+                    "username": "Account"
+                },
+                "description": "Refer to documentation of Tuya integration to retrive the cloud credentials https://www.home-assistant.io/integrations/tuya/\n\nEnter your Tuya credentials."
+            }
         }
-      }
     }
-  }
-  
+}
