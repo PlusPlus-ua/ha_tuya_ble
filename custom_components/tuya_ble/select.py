@@ -113,10 +113,10 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                     description=SelectEntityDescription(
                         key="beep_volume",
                         options=[
-                            "mute",
-                            "low",
-                            "normal",
-                            "high",
+                            "Mute",
+                            "Low",
+                            "Normal",
+                            "High",
                         ],
                         entity_category=EntityCategory.CONFIG,
                     ),
@@ -126,9 +126,11 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                     description=SelectEntityDescription(
                         key="language",
                         options=[
-                            "portuguese",
-                            "english",
-                            "chinese_simplified",
+                            "Chinese Simplified",
+                            "English",
+                            "French",
+                            "Spanish",
+                            "Portuguese",
                         ],
                         entity_category=EntityCategory.CONFIG,
                     ),

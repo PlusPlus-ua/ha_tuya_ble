@@ -175,19 +175,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             ),
         }
     ),
-    "jtmspro": TuyaBLECategorySwitchMapping(
-        products={
-            "xicdxood":  # Raycube K7 Pro+
-            [
-                TuyaBLESwitchMapping(
-                    dp_id=44,
-                    description=SwitchEntityDescription(
-                        key="rtc_lock",
-                    ),
-                ),
-            ],
-        }
-    ),
     "szjqr": TuyaBLECategorySwitchMapping(
         products={
             **dict.fromkeys(
