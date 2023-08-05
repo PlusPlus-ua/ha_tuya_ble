@@ -126,7 +126,7 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                     description=SelectEntityDescription(
                         key="language",
                         options=[
-                            "Portuguese",
+                            "portuguese",
                             "english",
                             "chinese_simplified",
                         ],
