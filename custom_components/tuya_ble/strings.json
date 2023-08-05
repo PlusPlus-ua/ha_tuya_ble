@@ -65,6 +65,10 @@
       "countdown_duration": {
         "name": "Irrigation duration"
       }
+      ,
+      "ble_unlock_check": {
+        "name": "Unlock"
+      }
     },
     "select": {
       "fingerbot_mode": {
@@ -87,6 +91,9 @@
       },
       "beep_volume": {
           "name": "Lock Volume"
+      },
+      "language": {
+          "name": "Lock Language"
       }
     },
     "binary_sensor": {
@@ -156,6 +163,15 @@
       },
       "time_left": {
           "name": "Remaining irrigation time"
+      },
+      "unlock_fingerprint": {
+          "name": "Last used Fingerprint"
+      },
+      "unlock_card": {
+          "name": "Last used Card"
+      },
+      "unlock_password": {
+          "name": "Last used Password"
       }
     },
     "switch": {

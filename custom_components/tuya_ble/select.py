@@ -120,18 +120,11 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                         ],
                         entity_category=EntityCategory.CONFIG,
                     ),
-                    icons=[
-                        "mdi:volume-mute",
-                        "mdi:volume-low",
-                        "mdi:volume-medium",
-                        "mdi:volume-high",
-                    ],
                 ),
                 TuyaBLESelectMapping(
                     dp_id=28,
                     description=SelectEntityDescription(
                         key="language",
-                        icon="mdi:account-voice",
                         options=[
                             "Chinese Simplified",
                             "English",
