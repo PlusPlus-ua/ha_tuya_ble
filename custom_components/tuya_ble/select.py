@@ -128,8 +128,8 @@ mapping: dict[str, TuyaBLECategorySelectMapping] = {
                         options=[
                             "Chinese Simplified",
                             "English",
-                            "French",
-                            "Spanish",
+                            "Arabic",
+                            "Indonesian",
                             "Portuguese",
                         ],
                         entity_category=EntityCategory.CONFIG,
