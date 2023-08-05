@@ -37,6 +37,9 @@
         "button": {
             "push": {
                 "name": "Push"
+            },
+            "ble_unlock_check": {
+              "name": "Unlock"
             }
         },
         "number": {

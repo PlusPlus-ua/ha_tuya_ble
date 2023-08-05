@@ -32,6 +32,9 @@
     "button": {
       "push": {
         "name": "Push"
+      },
+      "ble_unlock_check": {
+        "name": "Unlock"
       }
     },
     "number": {
@@ -64,10 +67,6 @@
       },
       "countdown_duration": {
         "name": "Irrigation duration"
-      }
-      ,
-      "ble_unlock_check": {
-        "name": "Unlock"
       }
     },
     "select": {
