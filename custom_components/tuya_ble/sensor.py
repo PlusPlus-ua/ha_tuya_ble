@@ -176,6 +176,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                     dp_id=21, # Requires more testing
                     description=SensorEntityDescription(
                         key="alarm_lock",
+                        icon="mdi:alarm-light-outline",
                         device_class=SensorDeviceClass.ENUM,
                         options=[
                             "wrong_finger",
