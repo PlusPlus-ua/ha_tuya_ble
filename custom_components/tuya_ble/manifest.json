@@ -13,5 +13,5 @@
   "documentation": "https://www.home-assistant.io/integrations/tuya_ble",
   "requirements": ["tuya-iot-py-sdk==0.6.6", "pycountry==22.3.5"],
   "iot_class": "local_push",
-  "version": "0.1.8"
+  "version": "0.1.9"
 }
