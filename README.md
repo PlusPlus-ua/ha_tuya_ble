@@ -37,7 +37,7 @@ The integration works locally, but connection to Tuya BLE device requires device
   + CO2 Detector (product_id '59s19z5m').
 
 * Smart Locks (category_id 'ms')
-  + Smart Lock (product_id 'ludzroix', 'isk2p555').
+  + Smart Lock (product_id 'ludzroix', 'isk2p555', 'gumrixyt').
 
 * Climate (category_id 'wk')
   + Thermostatic Radiator Valve (product_ids 'drlajpqc', 'nhj2j7su').
