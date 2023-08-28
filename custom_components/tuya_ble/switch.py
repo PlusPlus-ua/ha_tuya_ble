@@ -326,6 +326,22 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                     ),
                 ),
             ],
+            "hfgdqhho": [  # Irrigation computer
+                TuyaBLESwitchMapping(
+                    dp_id=105,
+                    description=SwitchEntityDescription(
+                        key="water_valve_z1",
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=104,
+                    description=SwitchEntityDescription(
+                        key="water_valve_z2",
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+            ],
         },
     ),
 }
