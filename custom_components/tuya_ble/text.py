@@ -141,7 +141,7 @@ mapping: dict[str, TuyaBLECategoryTextMapping] = {
                 ]
             ),
         },
-    ),
+    )
 }
 
 
