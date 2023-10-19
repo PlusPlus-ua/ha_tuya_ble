@@ -300,6 +300,18 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
             ),
         },
     ),
+    "dd": TuyaBLECategoryInfo(
+        products={
+            **dict.fromkeys(
+            [
+            "nvfrtxlq", 
+            ],  # device product_id
+            TuyaBLEProductInfo(
+                name="Strip Lights",
+		),
+            ),
+        },
+    ),
 }
 
 
