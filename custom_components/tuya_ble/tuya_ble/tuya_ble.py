@@ -404,6 +404,13 @@ class TuyaBLEDevice:
             return ""
 
     @property
+    def device_functions(self) -> List[Dict]:
+        if self._device_info is not None:
+            return self._device_info.functions
+        else:
+            return []
+
+    @property
     def device_version(self) -> str:
         return self._device_version
 

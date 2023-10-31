@@ -6,6 +6,9 @@ from dataclasses import dataclass, field
 import logging
 from typing import Any, Callable
 from enum import IntEnum, StrEnum, Enum
+from homeassistant.components.tuya.const import (
+    DPCode,
+)
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -33,15 +36,11 @@ from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
 _LOGGER = logging.getLogger(__name__)
 
-class DPCode(Enum):
-    """Data Point Codes used by Tuya Light."""
+# TODO : support for other kind of lights, configuration for min/max values for
+#        brightness or others, colors parameters...
+# Note: only "dd" devices have been tested
 
-    SWITCH = "switch"
-    MODE = "mode"
-    BRIGHTNESS = "brightness"
-    COLOR_HSB = "color_hsb"
-    COLOR_TEMP = "color_temp"
-
+# Actually might need to be defined in the mapping
 class WorkMode(IntEnum):
     """Work modes."""
 
@@ -54,7 +53,8 @@ class WorkMode(IntEnum):
 class TuyaBLELightMapping:
     description: LightEntityDescription
     dp_ids: dict[DPCode, int]
-
+    min_color_temp = 2700
+    max_color_temp = 6500
 
 @dataclass
 class TuyaBLECategoryLightMapping:
@@ -63,38 +63,74 @@ class TuyaBLECategoryLightMapping:
 
 
 mapping: dict[str, TuyaBLECategoryLightMapping] = {
-    "dd": TuyaBLECategoryLightMapping(
-        products =  { "nvfrtxlq" : [
-                TuyaBLELightMapping(
-                    dp_ids = {
-                        DPCode.SWITCH: 1,
-                        DPCode.MODE: 2,
-                        # No color temp support
-                        # DPCode.COLOR_TEMP: 4,
-                        DPCode.BRIGHTNESS: 3,
-                        DPCode.COLOR_HSB: 5,
-                    },
-                    description = LightEntityDescription(
-                        key = "rgb_light_bar",
-                        entity_registry_enabled_default = True,
-                    ),
-                ),
-            ],
-        },
+    # String Lights
+    # https://developer.tuya.com/en/docs/iot/dc?id=Kaof7taxmvadu
+    "dc": TuyaBLECategoryLightMapping(
+        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
+        products =  {},
 
         # default mapping
         mapping = [
+                # dp_ids will be filled by using the cloud values
                 TuyaBLELightMapping(
-                    dp_ids = {
-                        DPCode.SWITCH: 1,
-                        DPCode.MODE: 2,
-                        DPCode.BRIGHTNESS: 3,
-                        DPCode.COLOR_TEMP: 4,
-                        DPCode.COLOR_HSB: 5,
-                    },
+                    dp_ids = {},
                     description = LightEntityDescription(
-                        key = "rgb_light_bar",
-                        entity_registry_enabled_default = True,
+                        key = DPCode.SWITCH_LED,
+                    ),
+                ),
+            ],
+        ),
+
+
+    # Strip Lights
+    # https://developer.tuya.com/en/docs/iot/dd?id=Kaof804aibg2l
+    "dd": TuyaBLECategoryLightMapping(
+        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
+        products =  {},
+
+        # default mapping
+        mapping = [
+                # dp_ids will be filled by using the cloud values
+                TuyaBLELightMapping(
+                    dp_ids = {},
+                    description = LightEntityDescription(
+                        key = DPCode.SWITCH_LED,
+                    ),
+                ),
+            ],
+        ),
+
+    # Light
+    # https://developer.tuya.com/en/docs/iot/categorydj?id=Kaiuyzy3eheyy
+    "dj": TuyaBLECategoryLightMapping(
+        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
+        products =  {},
+
+        # default mapping
+        mapping = [
+                # dp_ids will be filled by using the cloud values
+                TuyaBLELightMapping(
+                    dp_ids = {},
+                    description = LightEntityDescription(
+                        key = DPCode.SWITCH_LED,
+                    ),
+                ),
+            ],
+        ),
+
+    # Ambient Light
+    # https://developer.tuya.com/en/docs/iot/ambient-light?id=Kaiuz06amhe6g
+    "fwd": TuyaBLECategoryLightMapping(
+        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
+        products =  {},
+
+        # default mapping
+        mapping = [
+                # dp_ids will be filled by using the cloud values
+                TuyaBLELightMapping(
+                    dp_ids = {},
+                    description = LightEntityDescription(
+                        key = DPCode.SWITCH_LED,
                     ),
                 ),
             ],
@@ -138,15 +174,17 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
 
         self._attr_color_mode = ColorMode.ONOFF
 
-        if mapping.dp_ids.get(DPCode.BRIGHTNESS):
+        if mapping.dp_ids.get(DPCode.BRIGHT_VALUE):
             color_modes.add(ColorMode.BRIGHTNESS)
             self._attr_color_mode = ColorMode.BRIGHTNESS
 
-        if mapping.dp_ids.get(DPCode.COLOR_TEMP):
+        if mapping.dp_ids.get(DPCode.TEMP_VALUE):
             color_modes.add(ColorMode.COLOR_TEMP)
             self._attr_color_mode = ColorMode.COLOR_TEMP
+            self._attr_min_color_temp_kelvin = mapping.min_color_temp
+            self._attr_max_color_temp_kelvin = mapping.max_color_temp
 
-        if mapping.dp_ids.get(DPCode.COLOR_HSB):
+        if mapping.dp_ids.get(DPCode.COLOUR_DATA):
             color_modes.add(ColorMode.HS)
             self._attr_color_mode = ColorMode.HS
 
@@ -156,14 +194,11 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         self._attr_hs_color = (0, 0)
         self._attr_is_on = False
 
-        self._attr_min_color_temp_kelvin = 2700
-        self._attr_max_color_temp_kelvin = 6500
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
 
-        dpid = self._mapping.dp_ids.get(DPCode.MODE)
+        dpid = self._mapping.dp_ids.get(DPCode.WORK_MODE)
         if dpid:
             datapoint = self._device.datapoints[dpid]
             if datapoint:
@@ -172,14 +207,14 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                 else:
                     self._attr_color_mode = ColorMode.HS
 
-        dpid = self._mapping.dp_ids.get(DPCode.BRIGHTNESS)
+        dpid = self._mapping.dp_ids.get(DPCode.BRIGHT_VALUE)
         if dpid:
             datapoint = self._device.datapoints[dpid]
             if datapoint:
                 self._attr_color_mode = ColorMode.WHITE
                 self._attr_brightness = float(datapoint.value) * 255 / 1000
 
-        dpid = self._mapping.dp_ids.get(DPCode.COLOR_TEMP)
+        dpid = self._mapping.dp_ids.get(DPCode.TEMP_VALUE)
         if dpid:
             datapoint = self._device.datapoints[dpid]
             if datapoint:
@@ -187,7 +222,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                 self._attr_color_mode = ColorMode.WHITE
                 self._attr_color_temp_kelvin = self._attr_min_color_temp_kelvin + val * (self._attr_max_color_temp_kelvin - self._attr_min_color_temp_kelvin) / 1000
 
-        dpid = self._mapping.dp_ids.get(DPCode.COLOR_HSB)
+        dpid = self._mapping.dp_ids.get(DPCode.COLOUR_DATA)
         if dpid:
             datapoint = self._device.datapoints[dpid]
             if datapoint:
@@ -208,7 +243,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                     self._attr_brightness = b
 
 
-        dpid = self._mapping.dp_ids.get(DPCode.SWITCH)
+        dpid = self._mapping.dp_ids.get(DPCode.SWITCH_LED)
         if dpid:
             datapoint = self._device.datapoints[dpid]
             if datapoint:
@@ -220,8 +255,8 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
     def is_on(self) -> bool:
         """Return true if light is on."""
 
-        if self._mapping.dp_ids and self._mapping.dp_ids.get(DPCode.SWITCH):
-            datapoint = self._device.datapoints[self._mapping.dp_ids[DPCode.SWITCH]]
+        if self._mapping.dp_ids and self._mapping.dp_ids.get(DPCode.SWITCH_LED):
+            datapoint = self._device.datapoints[self._mapping.dp_ids[DPCode.SWITCH_LED]]
             if datapoint:
                 return bool(datapoint.value)
         return False
@@ -274,10 +309,10 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         _LOGGER.debug("Send Brightness %d", brightness)
 
         if self._attr_color_mode != ColorMode.WHITE:
-            self.send_dp_value(DPCode.MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.WHITE)
+            self.send_dp_value(DPCode.WORK_MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.WHITE)
 
         new_value = brightness * 1000 / 255
-        self.send_dp_value(DPCode.BRIGHTNESS, TuyaBLEDataPointType.DT_VALUE, new_value)
+        self.send_dp_value(DPCode.BRIGHT_VALUE, TuyaBLEDataPointType.DT_VALUE, new_value)
 
 
     def send_color_temp(self, color_temp : Int) -> None:
@@ -285,10 +320,10 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         _LOGGER.debug("Send Color Temp %d", color_temp)
 
         if self._attr_color_mode != ColorMode.WHITE:
-            self.send_dp_value(DPCode.MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.WHITE)
+            self.send_dp_value(DPCode.WORK_MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.WHITE)
 
         new_value = float(color_temp - self._attr_min_color_temp_kelvin) / float(self._attr_max_color_temp_kelvin - self._attr_min_color_temp_kelvin) * 1000
-        self.send_dp_value(DPCode.COLOR_TEMP, TuyaBLEDataPointType.DT_VALUE, int(new_value))
+        self.send_dp_value(DPCode.TEMP_VALUE, TuyaBLEDataPointType.DT_VALUE, int(new_value))
 
 
 
@@ -297,19 +332,19 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         _LOGGER.debug("Send HSB %f %f %f", hs[0], hs[1], float(brightness))
 
         if self._attr_color_mode != ColorMode.HS:
-            self.send_dp_value(DPCode.MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.COLOUR)
+            self.send_dp_value(DPCode.WORK_MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.COLOUR)
 
         h = int(hs[0])
         s = int(hs[1] * 1000 / 100)
         b = int(brightness * 1000 / 255)
 
         new_value = ("%04X" % h) + ("%04X" % s) + ("%04X" % b)
-        self.send_dp_value(DPCode.COLOR_HSB, TuyaBLEDataPointType.DT_STRING, new_value)
+        self.send_dp_value(DPCode.COLOUR_DATA, TuyaBLEDataPointType.DT_STRING, new_value)
 
 
     def send_onoff(self, onoff: bool) -> None:
 
-        self.send_dp_value(DPCode.SWITCH, TuyaBLEDataPointType.DT_BOOL, onoff)
+        self.send_dp_value(DPCode.SWITCH_LED, TuyaBLEDataPointType.DT_BOOL, onoff)
 
     def send_dp_value(self,
         key: DPCode,
@@ -336,14 +371,32 @@ async def async_setup_entry(
     data: TuyaBLEData = hass.data[DOMAIN][entry.entry_id]
     mappings = get_mapping_by_device(data.device)
     entities: list[TuyaBLELight] = []
+
     for mapping in mappings:
-        entities.append(
-            TuyaBLELight(
-                    hass,
-                    data.coordinator,
-                    data.device,
-                    data.product,
-                    mapping,
-            )
+        if not mapping.dp_ids:
+            # Fill it by using the values retrieved from the cloud
+            functions = data.device.device_functions
+            if functions:
+                dp_ids = {}
+                for function in functions:
+                    code = function.get("code")
+                    dp_id = function.get("dp_id")
+                    if code and dp_id:
+                        dp_ids[code] = dp_id
+                mapping.dp_ids = dp_ids
+                _LOGGER.debug("Setting DP_IDs from cloud info : %s", str(mapping.dp_ids))
+            else:
+                _LOGGER.debug("No functions for product %s:%s", data.device.category(), data.device.product_id())
+
+        if mapping.dp_ids:
+            entities.append(
+                TuyaBLELight(
+                        hass,
+                        data.coordinator,
+                        data.device,
+                        data.product,
+                        mapping,
+                )
         )
     async_add_entities(entities)
+

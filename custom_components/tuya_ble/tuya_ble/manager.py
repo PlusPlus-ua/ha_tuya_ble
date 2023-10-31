@@ -14,6 +14,7 @@ class TuyaBLEDeviceCredentials:
     device_name: str | None
     product_model: str | None
     product_name: str | None
+    functions: List | None
 
     def __str__(self):
         return (
@@ -25,12 +26,14 @@ class TuyaBLEDeviceCredentials:
             "device_name: %s, "
             "product_model: %s, "
             "product_name: %s"
+            "functions: %s"
         ) % (
             self.category,
             self.product_id,
             self.device_name,
             self.product_model,
             self.product_name,
+            str(self.functions),
         )
 
 class AbstaractTuyaBLEDeviceManager(ABC):
@@ -56,6 +59,7 @@ class AbstaractTuyaBLEDeviceManager(ABC):
         product_id: str | None,
         device_name: str | None,
         product_name: str | None,
+        functions: List | None,
     ) -> TuyaBLEDeviceCredentials | None:
         """Checks and creates credentials of the Tuya BLE device."""
         if (
@@ -73,6 +77,7 @@ class AbstaractTuyaBLEDeviceManager(ABC):
                 product_id,
                 device_name,
                 product_name,
+                functions,
             )
         else:
             return None
