@@ -4,10 +4,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import logging
-from typing import Any, Callable
+import json
+
+from typing import Any, Callable, cast
 from enum import IntEnum, StrEnum, Enum
+
 from homeassistant.components.tuya.const import (
     DPCode,
+    DPType,
+    WorkMode,
 )
 
 from homeassistant.components.light import (
@@ -16,6 +21,7 @@ from homeassistant.components.light import (
     ATTR_RGB_COLOR,
     ATTR_WHITE,
     ATTR_COLOR_TEMP_KELVIN,
+    ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     ATTR_COLOR_MODE,
     ColorMode,
@@ -33,128 +39,426 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
+from .base import IntegerTypeData
 
 _LOGGER = logging.getLogger(__name__)
 
-# TODO : support for other kind of lights, configuration for min/max values for
-#        brightness or others, colors parameters...
-# Note: only "dd" devices have been tested
-
 # Actually might need to be defined in the mapping
-class WorkMode(IntEnum):
+class WorkModeValue(IntEnum):
     """Work modes."""
-
     COLOUR = 0
     SCENE = 1
     WHITE = 2
     MUSIC = 3
 
-@dataclass
-class TuyaBLELightMapping:
-    description: LightEntityDescription
-    dp_ids: dict[DPCode, int]
-    min_color_temp = 2700
-    max_color_temp = 6500
-
-@dataclass
-class TuyaBLECategoryLightMapping:
-    products: dict[str, list[TuyaBLELightMapping]] | None = None
-    mapping: list[TuyaBLELightMapping] | None = None
-
-
-mapping: dict[str, TuyaBLECategoryLightMapping] = {
-    # String Lights
-    # https://developer.tuya.com/en/docs/iot/dc?id=Kaof7taxmvadu
-    "dc": TuyaBLECategoryLightMapping(
-        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
-        products =  {},
-
-        # default mapping
-        mapping = [
-                # dp_ids will be filled by using the cloud values
-                TuyaBLELightMapping(
-                    dp_ids = {},
-                    description = LightEntityDescription(
-                        key = DPCode.SWITCH_LED,
-                    ),
-                ),
-            ],
-        ),
-
-
-    # Strip Lights
-    # https://developer.tuya.com/en/docs/iot/dd?id=Kaof804aibg2l
-    "dd": TuyaBLECategoryLightMapping(
-        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
-        products =  {},
-
-        # default mapping
-        mapping = [
-                # dp_ids will be filled by using the cloud values
-                TuyaBLELightMapping(
-                    dp_ids = {},
-                    description = LightEntityDescription(
-                        key = DPCode.SWITCH_LED,
-                    ),
-                ),
-            ],
-        ),
-
-    # Light
-    # https://developer.tuya.com/en/docs/iot/categorydj?id=Kaiuyzy3eheyy
-    "dj": TuyaBLECategoryLightMapping(
-        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
-        products =  {},
-
-        # default mapping
-        mapping = [
-                # dp_ids will be filled by using the cloud values
-                TuyaBLELightMapping(
-                    dp_ids = {},
-                    description = LightEntityDescription(
-                        key = DPCode.SWITCH_LED,
-                    ),
-                ),
-            ],
-        ),
-
-    # Ambient Light
-    # https://developer.tuya.com/en/docs/iot/ambient-light?id=Kaiuz06amhe6g
-    "fwd": TuyaBLECategoryLightMapping(
-        # fill  with { <some product ID> : TuyaBLELightMapping } if the values returned from the cloud aren't usable
-        products =  {},
-
-        # default mapping
-        mapping = [
-                # dp_ids will be filled by using the cloud values
-                TuyaBLELightMapping(
-                    dp_ids = {},
-                    description = LightEntityDescription(
-                        key = DPCode.SWITCH_LED,
-                    ),
-                ),
-            ],
-        ),
+WorkModeEnumToValue = {
+    WorkMode.COLOUR : WorkModeValue.COLOUR,
+    WorkMode.SCENE : WorkModeValue.SCENE,
+    WorkMode.WHITE : WorkModeValue.WHITE,
+    WorkMode.MUSIC : WorkModeValue.MUSIC,
 }
 
+WorkModeValueToEnum = {
+    WorkModeValue.COLOUR : WorkMode.COLOUR,
+    WorkModeValue.SCENE : WorkMode.SCENE,
+    WorkModeValue.WHITE : WorkMode.WHITE,
+    WorkModeValue.MUSIC : WorkMode.MUSIC,
+}
 
-def get_mapping_by_device(device: TuyaBLEDevice) -> list[TuyaBLECategoryLightMapping]:
+@dataclass
+class ColorTypeData:
+    """Color Type Data."""
+
+    h_type: IntegerTypeData
+    s_type: IntegerTypeData
+    v_type: IntegerTypeData
+
+
+DEFAULT_COLOR_TYPE_DATA = ColorTypeData(
+    h_type=IntegerTypeData(DPCode.COLOUR_DATA_HSV, min=1, scale=0, max=360, step=1),
+    s_type=IntegerTypeData(DPCode.COLOUR_DATA_HSV, min=1, scale=0, max=255, step=1),
+    v_type=IntegerTypeData(DPCode.COLOUR_DATA_HSV, min=1, scale=0, max=255, step=1),
+)
+
+DEFAULT_COLOR_TYPE_DATA_V2 = ColorTypeData(
+    h_type=IntegerTypeData(DPCode.COLOUR_DATA_HSV, min=1, scale=0, max=360, step=1),
+    s_type=IntegerTypeData(DPCode.COLOUR_DATA_HSV, min=1, scale=0, max=1000, step=1),
+    v_type=IntegerTypeData(DPCode.COLOUR_DATA_HSV, min=1, scale=0, max=1000, step=1),
+)
+
+
+@dataclass
+class ColorData:
+    """Color Data."""
+
+    type_data: ColorTypeData
+    h_value: int
+    s_value: int
+    v_value: int
+
+    @property
+    def hs_color(self) -> tuple[float, float]:
+        """Get the HS value from this color data."""
+        return (
+            self.type_data.h_type.remap_value_to(self.h_value, 0, 360),
+            self.type_data.s_type.remap_value_to(self.s_value, 0, 100),
+        )
+
+    @property
+    def brightness(self) -> int:
+        """Get the brightness value from this color data."""
+        return round(self.type_data.v_type.remap_value_to(self.v_value, 0, 255))
+
+
+@dataclass
+class TuyaLightEntityDescription(LightEntityDescription):
+    """Describe an Tuya light entity."""
+
+    brightness_max: DPCode | None = None
+    brightness_min: DPCode | None = None
+    brightness: DPCode | tuple[DPCode, ...] | None = None
+    color_data: DPCode | tuple[DPCode, ...] | None = None
+    color_mode: DPCode | None = None
+    color_temp: DPCode | tuple[DPCode, ...] | None = None
+    default_color_type: ColorTypeData = field(
+        default_factory=lambda: DEFAULT_COLOR_TYPE_DATA
+    )
+    dp_ids: dict[DPCode, int]  | None = None
+    workModes : List[WorkMode] | None = None
+
+
+# You can add here description for device for which automatic capabilities setting
+# from the cloud data doesn't work
+# ex:
+# <category> : { <productid> : [ TuyaLightEntityDescription(); ... ] },
+# ...}
+mapping: dict[str, dict[str, tuple[TuyaLightEntityDescription, ...]]] = {
+}
+
+# Copied from standard Tuya light component
+LIGHTS: dict[str, tuple[TuyaLightEntityDescription, ...]] = {
+    # Curtain Switch
+    # https://developer.tuya.com/en/docs/iot/category-clkg?id=Kaiuz0gitil39
+    "clkg": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_BACKLIGHT,
+            translation_key="backlight",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # String Lights
+    # https://developer.tuya.com/en/docs/iot/dc?id=Kaof7taxmvadu
+    "dc": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+    ),
+    # Strip Lights
+    # https://developer.tuya.com/en/docs/iot/dd?id=Kaof804aibg2l
+    "dd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+            default_color_type=DEFAULT_COLOR_TYPE_DATA_V2,
+        ),
+    ),
+    # Light
+    # https://developer.tuya.com/en/docs/iot/categorydj?id=Kaiuyzy3eheyy
+    "dj": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=(DPCode.BRIGHT_VALUE_V2, DPCode.BRIGHT_VALUE),
+            color_temp=(DPCode.TEMP_VALUE_V2, DPCode.TEMP_VALUE),
+            color_data=(DPCode.COLOUR_DATA_V2, DPCode.COLOUR_DATA),
+        ),
+        # Not documented
+        # Based on multiple reports: manufacturer customized Dimmer 2 switches
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_1,
+            translation_key="light",
+            brightness=DPCode.BRIGHT_VALUE_1,
+        ),
+    ),
+    # Ceiling Fan Light
+    # https://developer.tuya.com/en/docs/iot/fsd?id=Kaof8eiei4c2v
+    "fsd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+        # Some ceiling fan lights use LIGHT for DPCode instead of SWITCH_LED
+        TuyaLightEntityDescription(
+            key=DPCode.LIGHT,
+            name=None,
+        ),
+    ),
+    # Ambient Light
+    # https://developer.tuya.com/en/docs/iot/ambient-light?id=Kaiuz06amhe6g
+    "fwd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+    ),
+    # Motion Sensor Light
+    # https://developer.tuya.com/en/docs/iot/gyd?id=Kaof8a8hycfmy
+    "gyd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+    ),
+    # Humidifier Light
+    # https://developer.tuya.com/en/docs/iot/categoryjsq?id=Kaiuz1smr440b
+    "jsq": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_data=DPCode.COLOUR_DATA_HSV,
+        ),
+    ),
+    # Switch
+    # https://developer.tuya.com/en/docs/iot/s?id=K9gf7o5prgf7s
+    "kg": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_BACKLIGHT,
+            translation_key="backlight",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # Air Purifier
+    # https://developer.tuya.com/en/docs/iot/f?id=K9gf46h2s6dzm
+    "kj": (
+        TuyaLightEntityDescription(
+            key=DPCode.LIGHT,
+            translation_key="backlight",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # Air conditioner
+    # https://developer.tuya.com/en/docs/iot/categorykt?id=Kaiuz0z71ov2n
+    "kt": (
+        TuyaLightEntityDescription(
+            key=DPCode.LIGHT,
+            translation_key="backlight",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # Unknown light product
+    # Found as VECINO RGBW as provided by diagnostics
+    # Not documented
+    "mbd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+    ),
+    # Unknown product with light capabilities
+    # Fond in some diffusers, plugs and PIR flood lights
+    # Not documented
+    "qjdcz": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+    ),
+    # Heater
+    # https://developer.tuya.com/en/docs/iot/categoryqn?id=Kaiuz18kih0sm
+    "qn": (
+        TuyaLightEntityDescription(
+            key=DPCode.LIGHT,
+            translation_key="backlight",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # Smart Camera
+    # https://developer.tuya.com/en/docs/iot/categorysp?id=Kaiuz35leyo12
+    "sp": (
+        TuyaLightEntityDescription(
+            key=DPCode.FLOODLIGHT_SWITCH,
+            brightness=DPCode.FLOODLIGHT_LIGHTNESS,
+            name="Floodlight",
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.BASIC_INDICATOR,
+            name="Indicator light",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    # Dimmer Switch
+    # https://developer.tuya.com/en/docs/iot/categorytgkg?id=Kaiuz0ktx7m0o
+    "tgkg": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED_1,
+            translation_key="light",
+            brightness=DPCode.BRIGHT_VALUE_1,
+            brightness_max=DPCode.BRIGHTNESS_MAX_1,
+            brightness_min=DPCode.BRIGHTNESS_MIN_1,
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED_2,
+            translation_key="light_2",
+            brightness=DPCode.BRIGHT_VALUE_2,
+            brightness_max=DPCode.BRIGHTNESS_MAX_2,
+            brightness_min=DPCode.BRIGHTNESS_MIN_2,
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED_3,
+            translation_key="light_3",
+            brightness=DPCode.BRIGHT_VALUE_3,
+            brightness_max=DPCode.BRIGHTNESS_MAX_3,
+            brightness_min=DPCode.BRIGHTNESS_MIN_3,
+        ),
+    ),
+    # Dimmer
+    # https://developer.tuya.com/en/docs/iot/tgq?id=Kaof8ke9il4k4
+    "tgq": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            translation_key="light",
+            brightness=(DPCode.BRIGHT_VALUE_V2, DPCode.BRIGHT_VALUE),
+            brightness_max=DPCode.BRIGHTNESS_MAX_1,
+            brightness_min=DPCode.BRIGHTNESS_MIN_1,
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED_1,
+            translation_key="light",
+            brightness=DPCode.BRIGHT_VALUE_1,
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED_2,
+            translation_key="light_2",
+            brightness=DPCode.BRIGHT_VALUE_2,
+        ),
+    ),
+    # Wake Up Light II
+    # Not documented
+    "hxd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            translation_key="light",
+            brightness=(DPCode.BRIGHT_VALUE_V2, DPCode.BRIGHT_VALUE),
+            brightness_max=DPCode.BRIGHTNESS_MAX_1,
+            brightness_min=DPCode.BRIGHTNESS_MIN_1,
+        ),
+    ),
+    # Solar Light
+    # https://developer.tuya.com/en/docs/iot/tynd?id=Kaof8j02e1t98
+    "tyndj": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+    ),
+    # Ceiling Light
+    # https://developer.tuya.com/en/docs/iot/ceiling-light?id=Kaiuz03xxfc4r
+    "xdd": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+            color_data=DPCode.COLOUR_DATA,
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_NIGHT_LIGHT,
+            translation_key="night_light",
+        ),
+    ),
+    # Remote Control
+    # https://developer.tuya.com/en/docs/iot/ykq?id=Kaof8ljn81aov
+    "ykq": (
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_CONTROLLER,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_CONTROLLER,
+            color_temp=DPCode.TEMP_CONTROLLER,
+        ),
+    ),
+    # Fan
+    # https://developer.tuya.com/en/docs/iot/categoryfs?id=Kaiuz1xweel1c
+    "fs": (
+        TuyaLightEntityDescription(
+            key=DPCode.LIGHT,
+            name=None,
+            color_mode=DPCode.WORK_MODE,
+            brightness=DPCode.BRIGHT_VALUE,
+            color_temp=DPCode.TEMP_VALUE,
+        ),
+        TuyaLightEntityDescription(
+            key=DPCode.SWITCH_LED,
+            translation_key="light_2",
+            brightness=DPCode.BRIGHT_VALUE_1,
+        ),
+    ),
+}
+
+# Socket (duplicate of `kg`)
+# https://developer.tuya.com/en/docs/iot/s?id=K9gf7o5prgf7s
+LIGHTS["cz"] = LIGHTS["kg"]
+
+# Power Socket (duplicate of `kg`)
+# https://developer.tuya.com/en/docs/iot/s?id=K9gf7o5prgf7s
+LIGHTS["pc"] = LIGHTS["kg"]
+
+def get_mapping_by_device(device: TuyaBLEDevice) -> tuple[TuyaLightEntityDescription]:
     category = mapping.get(device.category)
     if category is not None:
-        if category.products is not None:
-            product_mapping = category.products.get(device.product_id)
-            if product_mapping is not None:
-                return product_mapping
-        if category.mapping is not None:
-            return category.mapping
-        else:
-            return []
-    else:
-        return []
+        product_mapping = category.get(device.product_id)
+        if product_mapping is not None:
+             return product_mapping
+    return LIGHTS.get(device.category)
 
 
 class TuyaBLELight(TuyaBLEEntity, LightEntity):
     """Representation of a Tuya BLE Light."""
+
+    entity_description: TuyaLightEntityDescription
+
+    _brightness_max: IntegerTypeData | None = None
+    _brightness_min: IntegerTypeData | None = None
+    _brightness: IntegerTypeData | None = None
+    _color_data_dpcode: DPCode | None = None
+    _color_data_type: ColorTypeData | None = None
+    _color_mode_dpcode: DPCode | None = None
+    _color_temp: IntegerTypeData | None = None
 
     _attr_has_entity_name = True
     _attr_name = None
@@ -165,201 +469,418 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         coordinator: DataUpdateCoordinator,
         device: TuyaBLEDevice,
         product: TuyaBLEProductInfo,
-        mapping: TuyaBLELightMapping,
+        description: TuyaLightEntityDescription = None
+
     ) -> None:
-        super().__init__(hass, coordinator, device, product, mapping.description)
-        self._mapping = mapping
+        super().__init__(hass, coordinator, device, product, description)
 
-        color_modes = { ColorMode.ONOFF }
+        self.entity_description = description
+        self._attr_unique_id = f"{super().unique_id}{description.key}"
+        self._attr_supported_color_modes: set[ColorMode] = set()
+        
+        # Determine DPCodes
+        self._color_mode_dpcode = self.find_dpcode(
+            description.color_mode, prefer_function=True
+        )
 
-        self._attr_color_mode = ColorMode.ONOFF
+        if int_type := self.find_dpcode(
+            description.brightness, dptype=DPType.INTEGER, prefer_function=True
+        ):
+            self._brightness = int_type
+            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+            self._brightness_max = self.find_dpcode(
+                description.brightness_max, dptype=DPType.INTEGER
+            )
+            self._brightness_min = self.find_dpcode(
+                description.brightness_min, dptype=DPType.INTEGER
+            )
 
-        if mapping.dp_ids.get(DPCode.BRIGHT_VALUE):
-            color_modes.add(ColorMode.BRIGHTNESS)
-            self._attr_color_mode = ColorMode.BRIGHTNESS
+        if int_type := self.find_dpcode(
+            description.color_temp, dptype=DPType.INTEGER, prefer_function=True
+        ):
+            self._color_temp = int_type
+            self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
 
-        if mapping.dp_ids.get(DPCode.TEMP_VALUE):
-            color_modes.add(ColorMode.COLOR_TEMP)
-            self._attr_color_mode = ColorMode.COLOR_TEMP
-            self._attr_min_color_temp_kelvin = mapping.min_color_temp
-            self._attr_max_color_temp_kelvin = mapping.max_color_temp
+        if (
+            dpcode := self.find_dpcode(description.color_data, prefer_function=True)
+        ) and self.get_dptype(dpcode) == DPType.JSON:
+            self._color_data_dpcode = dpcode
+            self._attr_supported_color_modes.add(ColorMode.HS)
+            if dpcode in self.device.function:
+                values = cast(str, self.device.function[dpcode].values)
+            else:
+                values = self.device.status_range[dpcode].values
 
-        if mapping.dp_ids.get(DPCode.COLOUR_DATA):
-            color_modes.add(ColorMode.HS)
-            self._attr_color_mode = ColorMode.HS
+            # Fetch color data type information
+            if function_data := json.loads(values):
+                self._color_data_type = ColorTypeData(
+                    h_type=IntegerTypeData(dpcode, **function_data["h"]),
+                    s_type=IntegerTypeData(dpcode, **function_data["s"]),
+                    v_type=IntegerTypeData(dpcode, **function_data["v"]),
+                )
+            else:
+                # If no type is found, use a default one
+                self._color_data_type = self.entity_description.default_color_type
+                if self._color_data_dpcode == DPCode.COLOUR_DATA_V2 or (
+                    self._brightness and self._brightness.max > 255
+                ):
+                    self._color_data_type = DEFAULT_COLOR_TYPE_DATA_V2
 
-        self._attr_supported_color_modes = color_modes
-
-        self._attr_brightness = 0
-        self._attr_hs_color = (0, 0)
-        self._attr_is_on = False
+        if not self._attr_supported_color_modes:
+            self._attr_supported_color_modes = {ColorMode.ONOFF}
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-
-        dpid = self._mapping.dp_ids.get(DPCode.WORK_MODE)
-        if dpid:
-            datapoint = self._device.datapoints[dpid]
-            if datapoint:
-                if datapoint.value == WorkMode.WHITE:
-                    self._attr_color_mode = ColorMode.WHITE
-                else:
-                    self._attr_color_mode = ColorMode.HS
-
-        dpid = self._mapping.dp_ids.get(DPCode.BRIGHT_VALUE)
-        if dpid:
-            datapoint = self._device.datapoints[dpid]
-            if datapoint:
-                self._attr_color_mode = ColorMode.WHITE
-                self._attr_brightness = float(datapoint.value) * 255 / 1000
-
-        dpid = self._mapping.dp_ids.get(DPCode.TEMP_VALUE)
-        if dpid:
-            datapoint = self._device.datapoints[dpid]
-            if datapoint:
-                val = float(datapoint.value)
-                self._attr_color_mode = ColorMode.WHITE
-                self._attr_color_temp_kelvin = self._attr_min_color_temp_kelvin + val * (self._attr_max_color_temp_kelvin - self._attr_min_color_temp_kelvin) / 1000
-
-        dpid = self._mapping.dp_ids.get(DPCode.COLOUR_DATA)
-        if dpid:
-            datapoint = self._device.datapoints[dpid]
-            if datapoint:
-                # from Tuya doc:
-                # color format :
-                # Value: 000011112222
-                # 0000: H (chromaticity: 0-360, 0X0000-0X0168)
-                # 1111: S (saturation: 0-1000, 0X0000-0X03E8)
-                # 2222: V (Brightness: 0-1000, 0X0000-0X03E8)
-
-                hsl_string = datapoint.value
-                if len(hsl_string) == 12:
-                    h = float(int(hsl_string[:4], 16))
-                    s = float(int(hsl_string[4:8], 16)) * 100 / 1000
-                    b = float(int(hsl_string[8:], 16)) * 255 / 1000
-                    self._attr_color_mode = ColorMode.HS
-                    self._attr_hs_color = (h,s)
-                    self._attr_brightness = b
-
-
-        dpid = self._mapping.dp_ids.get(DPCode.SWITCH_LED)
-        if dpid:
-            datapoint = self._device.datapoints[dpid]
-            if datapoint:
-                self._attr_is_on = datapoint.value
-
         self.async_write_ha_state()
 
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
-
-        if self._mapping.dp_ids and self._mapping.dp_ids.get(DPCode.SWITCH_LED):
-            datapoint = self._device.datapoints[self._mapping.dp_ids[DPCode.SWITCH_LED]]
-            if datapoint:
-                return bool(datapoint.value)
-        return False
+        return self.device.status.get(self.entity_description.key, False)
 
     def turn_on(self, **kwargs: Any) -> None:
-        """Turn the light on."""
+        """Turn on or control the light."""
+        commands = [{"code": self.entity_description.key, "value": True}]
 
-        color_mode = self._attr_color_mode
-        if ATTR_COLOR_MODE in kwargs:
-            color_mode =  kwargs[ATTR_COLOR_MODE]
+        if self._color_temp and ATTR_COLOR_TEMP in kwargs:
+            if self._color_mode_dpcode:
+                commands += [
+                    {
+                        "code": self._color_mode_dpcode,
+                        "value": WorkMode.WHITE,
+                    },
+                ]
 
-        brightness = self._attr_brightness
-        if ATTR_BRIGHTNESS in kwargs:
-            brightness =  kwargs[ATTR_BRIGHTNESS]
+            commands += [
+                {
+                    "code": self._color_temp.dpcode,
+                    "value": round(
+                        self._color_temp.remap_value_from(
+                            kwargs[ATTR_COLOR_TEMP],
+                            self.min_mireds,
+                            self.max_mireds,
+                            reverse=True,
+                        )
+                    ),
+                },
+            ]
 
-        color_temp = self._attr_color_temp_kelvin
-        if ATTR_COLOR_TEMP_KELVIN in kwargs:
-            color_temp =  kwargs[ATTR_COLOR_TEMP_KELVIN]
-            color_mode = ColorMode.WHITE
+        if self._color_data_type and (
+            ATTR_HS_COLOR in kwargs
+            or (
+                ATTR_BRIGHTNESS in kwargs
+                and self.color_mode == ColorMode.HS
+                and ATTR_COLOR_TEMP not in kwargs
+            )
+        ):
+            if self._color_mode_dpcode:
+                commands += [
+                    {
+                        "code": self._color_mode_dpcode,
+                        "value": WorkMode.COLOUR,
+                    },
+                ]
 
-        if ATTR_WHITE in kwargs:
-            brightness =  kwargs[ATTR_WHITE]
-            color_mode = ColorMode.WHITE
+            if not (brightness := kwargs.get(ATTR_BRIGHTNESS)):
+                brightness = self.brightness or 0
 
-        hs_color = self._attr_hs_color
-        if ATTR_HS_COLOR in kwargs:
-            hs_color =  kwargs[ATTR_HS_COLOR]
-            color_mode = ColorMode.HS
+            if not (color := kwargs.get(ATTR_HS_COLOR)):
+                color = self.hs_color or (0, 0)
 
-        if hs_color == None:
-            color_mode = ColorMode.WHITE
+            h = self._color_data_type.h_type.remap_value_from(
+                                    color[0], 0, 360
+                                )
+            s = self._color_data_type.s_type.remap_value_from(
+                                    color[1], 0, 100
+                                )
+            v = self._color_data_type.v_type.remap_value_from(
+                                    brightness
+                                )
+            commands += [
+                {
+                    "code": self._color_data_dpcode,
+                    "value": ("%04X" % int(h)) + ("%04X" % int(s)) + ("%04X" % int(v)),
+                },
+            ]
 
-        if color_mode == ColorMode.WHITE:
-            self.send_color_temp(color_temp)
-            self.send_brightness(brightness)
+        elif ATTR_BRIGHTNESS in kwargs and self._brightness:
+            brightness = kwargs[ATTR_BRIGHTNESS]
 
-        if color_mode == ColorMode.HS:
-            self.send_hsb(hs_color, brightness)
+            # If there is a min/max value, the brightness is actually limited.
+            # Meaning it is actually not on a 0-255 scale.
+            if (
+                self._brightness_max is not None
+                and self._brightness_min is not None
+                and (
+                    brightness_max := self.device.status.get(
+                        self._brightness_max.dpcode
+                    )
+                )
+                is not None
+                and (
+                    brightness_min := self.device.status.get(
+                        self._brightness_min.dpcode
+                    )
+                )
+                is not None
+            ):
+                # Remap values onto our scale
+                brightness_max = self._brightness_max.remap_value_to(brightness_max)
+                brightness_min = self._brightness_min.remap_value_to(brightness_min)
 
-        self.send_onoff(True)
+                # Remap the brightness value from their min-max to our 0-255 scale
+                brightness = remap_value(
+                    brightness,
+                    to_min=brightness_min,
+                    to_max=brightness_max,
+                )
+
+            commands += [
+                {
+                    "code": self._brightness.dpcode,
+                    "value": round(self._brightness.remap_value_from(brightness)),
+                },
+            ]
+
+        self._send_command(commands)
 
     def turn_off(self, **kwargs: Any) -> None:
-        """Turn the light off."""
+        """Instruct the light to turn off."""
 
-        self.send_onoff(False)
-
-    # brightness is 0..255
-    def send_brightness(self, brightness : Int) -> None:
-
-        _LOGGER.debug("Send Brightness %d", brightness)
-
-        if self._attr_color_mode != ColorMode.WHITE:
-            self.send_dp_value(DPCode.WORK_MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.WHITE)
-
-        new_value = brightness * 1000 / 255
-        self.send_dp_value(DPCode.BRIGHT_VALUE, TuyaBLEDataPointType.DT_VALUE, new_value)
+        self._send_command([{"code": self.entity_description.key, "value": False}])
 
 
-    def send_color_temp(self, color_temp : Int) -> None:
+    @property
+    def brightness(self) -> int | None:
+        """Return the brightness of the light."""
+        # If the light is currently in color mode, extract the brightness from the color data
+        if self.color_mode == ColorMode.HS and (color_data := self._get_color_data()):
+            return color_data.brightness
 
-        _LOGGER.debug("Send Color Temp %d", color_temp)
+        if not self._brightness:
+            return None
 
-        if self._attr_color_mode != ColorMode.WHITE:
-            self.send_dp_value(DPCode.WORK_MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.WHITE)
+        brightness = self.device.status.get(self._brightness.dpcode)
+        if brightness is None:
+            return None
 
-        new_value = float(color_temp - self._attr_min_color_temp_kelvin) / float(self._attr_max_color_temp_kelvin - self._attr_min_color_temp_kelvin) * 1000
-        self.send_dp_value(DPCode.TEMP_VALUE, TuyaBLEDataPointType.DT_VALUE, int(new_value))
+        # Remap value to our scale
+        brightness = self._brightness.remap_value_to(brightness)
+
+        # If there is a min/max value, the brightness is actually limited.
+        # Meaning it is actually not on a 0-255 scale.
+        if (
+            self._brightness_max is not None
+            and self._brightness_min is not None
+            and (brightness_max := self.device.status.get(self._brightness_max.dpcode))
+            is not None
+            and (brightness_min := self.device.status.get(self._brightness_min.dpcode))
+            is not None
+        ):
+            # Remap values onto our scale
+            brightness_max = self._brightness_max.remap_value_to(brightness_max)
+            brightness_min = self._brightness_min.remap_value_to(brightness_min)
+
+            # Remap the brightness value from their min-max to our 0-255 scale
+            brightness = remap_value(
+                brightness,
+                from_min=brightness_min,
+                from_max=brightness_max,
+            )
+
+        return round(brightness)
+
+    @property
+    def color_temp(self) -> int | None:
+        """Return the color_temp of the light."""
+        if not self._color_temp:
+            return None
+
+        temperature = self._device.status.get(self._color_temp.dpcode)
+        if temperature is None:
+            return None
+
+        return round(
+            self._color_temp.remap_value_to(
+                temperature, self.min_mireds, self.max_mireds, reverse=True
+            )
+        )
+
+    @property
+    def hs_color(self) -> tuple[float, float] | None:
+        """Return the hs_color of the light."""
+        if self._color_data_dpcode is None or not (
+            color_data := self._get_color_data()
+        ):
+            return None
+        return color_data.hs_color
+
+    @property
+    def color_mode(self) -> ColorMode:
+        """Return the color_mode of the light."""
+        # We consider it to be in HS color mode, when work mode is anything
+        # else than "white".
+        if (
+            self._color_mode_dpcode
+            and self.device.status.get(self._color_mode_dpcode) != WorkMode.WHITE
+        ):
+            return ColorMode.HS
+        if self._color_temp:
+            return ColorMode.COLOR_TEMP
+        if self._brightness:
+            return ColorMode.BRIGHTNESS
+        return ColorMode.ONOFF
+
+    def _get_color_data(self) -> ColorData | None:
+        """Get current color data from device."""
+        if (
+            self._color_data_type is None
+            or self._color_data_dpcode is None
+            or self._color_data_dpcode not in self.device.status
+        ):
+            return None
+
+        if not (status_data := self.device.status[self._color_data_dpcode]):
+            return None
+
+        if len(status_data) == 12:
+            h = float(int(status_data[:4], 16))
+            s = float(int(status_data[4:8], 16))
+            v = float(int(status_data[8:], 16))
+            return ColorData(
+                    type_data=self._color_data_type,
+                    h_value=h,
+                    s_value=s,
+                    v_value=v,
+                )   
+
+        return None
 
 
+    # TODO: These methods should be moved to the base BLE Entity class
+    def _send_command(self, commands : List[Dict[str, Any]]) -> None:
 
-    def send_hsb(self, hs : float[2], brightness: Int) -> None:
+        for command in commands:
+            code = command.get("code")
+            value = command.get("value")
 
-        _LOGGER.debug("Send HSB %f %f %f", hs[0], hs[1], float(brightness))
+            if code and value is not None:
+                dttype = self.get_dptype(code)
+                if isinstance(value, str):
+                    if dttype == DPType.STRING or dttype == DPType.JSON:
+                        self.send_dp_value(code, TuyaBLEDataPointType.DT_STRING, value)
+                    elif dttype == DPType.ENUM:
+                        # TODO : need some generic stuff for this conversion
+                        value = WorkModeEnumToValue.get(value)
+                        if value is not None:
+                            self.send_dp_value(code, TuyaBLEDataPointType.DT_ENUM, value)
 
-        if self._attr_color_mode != ColorMode.HS:
-            self.send_dp_value(DPCode.WORK_MODE, TuyaBLEDataPointType.DT_ENUM, WorkMode.COLOUR)
+                elif isinstance(value, bool):
+                    self.send_dp_value(code, TuyaBLEDataPointType.DT_BOOL, value)
+                else:
+                    self.send_dp_value(code, TuyaBLEDataPointType.DT_VALUE, value)
 
-        h = int(hs[0])
-        s = int(hs[1] * 1000 / 100)
-        b = int(brightness * 1000 / 255)
-
-        new_value = ("%04X" % h) + ("%04X" % s) + ("%04X" % b)
-        self.send_dp_value(DPCode.COLOUR_DATA, TuyaBLEDataPointType.DT_STRING, new_value)
-
-
-    def send_onoff(self, onoff: bool) -> None:
-
-        self.send_dp_value(DPCode.SWITCH_LED, TuyaBLEDataPointType.DT_BOOL, onoff)
 
     def send_dp_value(self,
-        key: DPCode,
+        key: DPCode | Node,
         type: TuyaBLEDataPointType,
         value: bytes | bool | int | str | None = None) -> None:
 
-        dpid = self._mapping.dp_ids.get(key)
-        if dpid:
+        dpid = self.find_dpid(key)
+        if dpid is not None:
             datapoint = self._device.datapoints.get_or_create(
                     dpid,
                     type,
                     value,
-            )
-            if datapoint:
-                self._hass.create_task(datapoint.set_value(value))
+                )
+            self._hass.create_task(datapoint.set_value(value))
+
+    
+    def find_dpid(self, code: DPCode | None) -> int | None:
+        """Returns the dp id for the given code"""
+        if code and self.entity_description.dp_ids:
+            return self.entity_description.dp_ids.get(code)
+        return None
+
+    def find_dpcode(
+        self,
+        dpcodes: str | DPCode | tuple[DPCode, ...] | None,
+        *,
+        prefer_function: bool = False,
+        dptype: DPType | None = None,
+    ) -> DPCode | EnumTypeData | IntegerTypeData | None:
+        """Find a matching DP code available on for this device."""
+        if dpcodes is None:
+            return None
+
+        if isinstance(dpcodes, str):
+            dpcodes = (DPCode(dpcodes),)
+        elif not isinstance(dpcodes, tuple):
+            dpcodes = (dpcodes,)
+
+        order = ["status_range", "function"]
+        if prefer_function:
+            order = ["function", "status_range"]
+
+        # When we are not looking for a specific datatype, we can append status for
+        # searching
+        if not dptype:
+            order.append("status")
+
+        for dpcode in dpcodes:
+            for key in order:
+                if dpcode not in getattr(self.device, key):
+                    continue
+                if (
+                    dptype == DPType.ENUM
+                    and getattr(self.device, key)[dpcode].type == DPType.ENUM
+                ):
+                    if not (
+                        enum_type := EnumTypeData.from_json(
+                            dpcode, getattr(self.device, key)[dpcode].values
+                        )
+                    ):
+                        continue
+                    return enum_type
+
+                if (
+                    dptype == DPType.INTEGER
+                    and getattr(self.device, key)[dpcode].type == DPType.INTEGER
+                ):
+                    if not (
+                        integer_type := IntegerTypeData.from_json(
+                            dpcode, getattr(self.device, key)[dpcode].values
+                        )
+                    ):
+                        continue
+                    return integer_type
+
+                if dptype not in (DPType.ENUM, DPType.INTEGER):
+                    return dpcode
+
+        for dpcode in dpcodes:
+            if dpcode in self.entity_description.dp_ids:
+                return dpcode
+
+        return None
+
+
+    def get_dptype(
+        self, dpcode: DPCode | None, prefer_function: bool = False
+    ) -> DPType | None:
+        """Find a matching DPCode data type available on for this device."""
+        if dpcode is None:
+            return None
+
+        order = ["status_range", "function"]
+        if prefer_function:
+            order = ["function", "status_range"]
+        for key in order:
+            if dpcode in getattr(self.device, key):
+                return DPType(getattr(self.device, key)[dpcode].type)
+
+        return None
 
 
 async def async_setup_entry(
@@ -369,11 +890,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Tuya BLE sensors."""
     data: TuyaBLEData = hass.data[DOMAIN][entry.entry_id]
-    mappings = get_mapping_by_device(data.device)
+    descs = get_mapping_by_device(data.device)
     entities: list[TuyaBLELight] = []
 
-    for mapping in mappings:
-        if not mapping.dp_ids:
+    for desc in descs:
+        if not desc.dp_ids:
             # Fill it by using the values retrieved from the cloud
             functions = data.device.device_functions
             if functions:
@@ -381,21 +902,20 @@ async def async_setup_entry(
                 for function in functions:
                     code = function.get("code")
                     dp_id = function.get("dp_id")
-                    if code and dp_id:
+                    if dp_id is not None:
                         dp_ids[code] = dp_id
-                mapping.dp_ids = dp_ids
-                _LOGGER.debug("Setting DP_IDs from cloud info : %s", str(mapping.dp_ids))
+                desc.dp_ids = dp_ids
+                _LOGGER.warning("Setting DP_IDs from cloud info : %s - %s", str(desc.dp_ids), str(functions))
             else:
-                _LOGGER.debug("No functions for product %s:%s", data.device.category(), data.device.product_id())
+                _LOGGER.error("No function for product %s:%s", data.device.category(), data.device.product_id())
 
-        if mapping.dp_ids:
-            entities.append(
-                TuyaBLELight(
-                        hass,
-                        data.coordinator,
-                        data.device,
-                        data.product,
-                        mapping,
+        entities.append(
+            TuyaBLELight(
+                    hass,
+                    data.coordinator,
+                    data.device,
+                    data.product,
+                    desc,
                 )
         )
     async_add_entities(entities)

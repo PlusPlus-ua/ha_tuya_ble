@@ -87,6 +87,11 @@ class TuyaBLEEntity(CoordinatorEntity):
         """Return if entity is available."""
         return self._coordinator.connected
 
+    @property
+    def device(self) -> TuyaBLEDevice:
+        """Return the associated BLE Device."""
+        return self._device
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

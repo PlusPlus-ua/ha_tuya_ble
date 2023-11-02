@@ -3,7 +3,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-
 @dataclass
 class TuyaBLEDeviceCredentials:
     uuid: str
@@ -15,6 +14,7 @@ class TuyaBLEDeviceCredentials:
     product_model: str | None
     product_name: str | None
     functions: List | None
+    status_range: List | None
 
     def __str__(self):
         return (
@@ -27,13 +27,15 @@ class TuyaBLEDeviceCredentials:
             "product_model: %s, "
             "product_name: %s"
             "functions: %s"
+            "status_range: %s"
         ) % (
             self.category,
             self.product_id,
             self.device_name,
             self.product_model,
             self.product_name,
-            str(self.functions),
+            self.functions,
+            self.status_range,
         )
 
 class AbstaractTuyaBLEDeviceManager(ABC):
@@ -58,8 +60,10 @@ class AbstaractTuyaBLEDeviceManager(ABC):
         category: str | None,
         product_id: str | None,
         device_name: str | None,
+        product_model: str | None,
         product_name: str | None,
         functions: List | None,
+        status_range: List | None,
     ) -> TuyaBLEDeviceCredentials | None:
         """Checks and creates credentials of the Tuya BLE device."""
         if (
@@ -76,8 +80,10 @@ class AbstaractTuyaBLEDeviceManager(ABC):
                 category,
                 product_id,
                 device_name,
+                product_model,
                 product_name,
                 functions,
+                status_range,
             )
         else:
             return None
