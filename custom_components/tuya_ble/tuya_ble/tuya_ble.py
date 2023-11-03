@@ -273,6 +273,9 @@ class TuyaBLEDevice:
 
         self._datapoints = TuyaBLEDataPoints(self)
 
+        self._function = {}
+        self._status_range = {}
+
 
     def set_ble_device_and_advertisement_data(
         self, ble_device: BLEDevice, advertisement_data: AdvertisementData
@@ -321,26 +324,23 @@ class TuyaBLEDevice:
                 self._local_key = self._device_info.local_key[:6].encode()
                 self._login_key = hashlib.md5(self._local_key).digest()
 
-                result = {}
-                functions = self._device_info.functions
-                if functions:
-                    for f in functions:
-                        dpcode = f.get("code")
-                        if dpcode:
-                            result[dpcode] = TuyaBLEDeviceFunction(**f)
-                self._functions = result
-
-                functions = self._device_info.status_range
-                result = {}
-                if functions:
-                    for f in functions:
-                        dpcode = f.get("code")
-                        if dpcode:
-                            result[dpcode] = TuyaBLEDeviceFunction(**f)
-                self._status_range = result
-
+                self.append_functions(self._device_info.functions, self._device_info.status_range)
 
         return self._device_info is not None
+
+    def append_functions(self, function: List[dict], status_range: List[dict]) -> None:
+        if function:
+            for f in function:
+                dpcode = f.get("code")
+                if dpcode:
+                    self._function[dpcode] = TuyaBLEDeviceFunction(**f)
+
+        if status_range:
+            for f in status_range:
+                dpcode = f.get("code")
+                if dpcode:
+                    self._status_range[dpcode] = TuyaBLEDeviceFunction(**f)
+
 
     def _decode_advertisement_data(self) -> None:
         raw_product_id: bytes | None = None
@@ -441,21 +441,8 @@ class TuyaBLEDevice:
             return ""
 
     @property
-    def device_functions(self) -> List[Dict]:
-        if self._device_info is not None:
-            return self._device_info.functions
-        else:
-            return []
-
-    def device_status_range(self) -> List[Dict]:
-        if self._device_info is not None:
-            return self._device_info.status_range
-        else:
-            return []
-
-    @property
     def function(self) -> Dict(str, Dict):
-        return self._functions
+        return self._function
 
     @property
     def status_range(self) -> Dict(str, Dict):
@@ -482,22 +469,17 @@ class TuyaBLEDevice:
     def status(self) -> Dict[str, Any]:
         """Get current datapoints values."""
 
+        result = {}
         dps = self.datapoints._datapoints
-        functions = self.function
-        if dps and functions:
-            result = {}
-            for dpcode in functions:
-                f = functions[dpcode]
-                dpid = f.dp_id
-                v = dps.get(dpid)
-                if v:
-                    result[dpcode] = v.value
-            return result
-        return {}
-
-        for dp in dps:
-            result[dp] = dps.get(dp).value
-
+        if dps:
+            order = [self.status_range, self.function]
+            for functions in order:
+                for dpcode in functions:
+                    f = functions[dpcode]
+                    dpid = f.dp_id
+                    v = dps.get(dpid)
+                    if v:
+                        result[dpcode] = v.value
         return result
 
     def get_or_create_datapoint(

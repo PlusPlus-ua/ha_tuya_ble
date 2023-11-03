@@ -123,16 +123,23 @@ class TuyaLightEntityDescription(LightEntityDescription):
     default_color_type: ColorTypeData = field(
         default_factory=lambda: DEFAULT_COLOR_TYPE_DATA
     )
-    dp_ids: dict[DPCode, int]  | None = None
-    workModes : List[WorkMode] | None = None
+    function: List[dict[DPCode, Any]]  | None = None
+    status_range: List[dict[DPCode, Any]]  | None = None
 
 
 # You can add here description for device for which automatic capabilities setting
 # from the cloud data doesn't work
+# function/status range are array of dicts descriptions the DPs
+# ex: 
+# functions = [
+#   {'code': 'switch_led', 'dp_id': 1, 'type': 'Boolean', 'values': '{}'},
+#   {'code': 'bright_value', 'dp_id': 3, 'type': 'Integer', 'values': '{"min":10,"max":1000,"scale":0,"step":1}'}, 
+#   {'code': 'colour_data', 'dp_id': 5, 'type': 'Json', 'values': '{"h":{"min":0,"scale":0,"unit":"","max":360,"step":1},"s":{"min":0,"scale":0,"unit":"","max":1000,"step":1},"v":{"min":0,"scale":0,"unit":"","max":1000,"step":1}}'}, 
+# ]
 # ex:
 # <category> : { <productid> : [ TuyaLightEntityDescription(); ... ] },
 # ...}
-mapping: dict[str, dict[str, tuple[TuyaLightEntityDescription, ...]]] = {
+ProductsMapping: dict[str, dict[str, tuple[TuyaLightEntityDescription, ...]]] = {
 }
 
 # Copied from standard Tuya light component
@@ -439,7 +446,7 @@ LIGHTS["cz"] = LIGHTS["kg"]
 LIGHTS["pc"] = LIGHTS["kg"]
 
 def get_mapping_by_device(device: TuyaBLEDevice) -> tuple[TuyaLightEntityDescription]:
-    category = mapping.get(device.category)
+    category = ProductsMapping.get(device.category)
     if category is not None:
         product_mapping = category.get(device.product_id)
         if product_mapping is not None:
@@ -469,15 +476,17 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         coordinator: DataUpdateCoordinator,
         device: TuyaBLEDevice,
         product: TuyaBLEProductInfo,
-        description: TuyaLightEntityDescription = None
+        description: TuyaLightEntityDescription
 
     ) -> None:
         super().__init__(hass, coordinator, device, product, description)
 
-        self.entity_description = description
         self._attr_unique_id = f"{super().unique_id}{description.key}"
         self._attr_supported_color_modes: set[ColorMode] = set()
         
+        # Add the functions explicitely declared in the description to the one discovered by the device
+        device.append_functions(description.function, description.status_range)
+
         # Determine DPCodes
         self._color_mode_dpcode = self.find_dpcode(
             description.color_mode, prefer_function=True
@@ -759,6 +768,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
 
 
     # TODO: These methods should be moved to the base BLE Entity class
+    #       but gerneric enum conversion needs some work
     def _send_command(self, commands : List[Dict[str, Any]]) -> None:
 
         for command in commands:
@@ -782,107 +792,6 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                     self.send_dp_value(code, TuyaBLEDataPointType.DT_VALUE, value)
 
 
-    def send_dp_value(self,
-        key: DPCode | Node,
-        type: TuyaBLEDataPointType,
-        value: bytes | bool | int | str | None = None) -> None:
-
-        dpid = self.find_dpid(key)
-        if dpid is not None:
-            datapoint = self._device.datapoints.get_or_create(
-                    dpid,
-                    type,
-                    value,
-                )
-            self._hass.create_task(datapoint.set_value(value))
-
-    
-    def find_dpid(self, code: DPCode | None) -> int | None:
-        """Returns the dp id for the given code"""
-        if code and self.entity_description.dp_ids:
-            return self.entity_description.dp_ids.get(code)
-        return None
-
-    def find_dpcode(
-        self,
-        dpcodes: str | DPCode | tuple[DPCode, ...] | None,
-        *,
-        prefer_function: bool = False,
-        dptype: DPType | None = None,
-    ) -> DPCode | EnumTypeData | IntegerTypeData | None:
-        """Find a matching DP code available on for this device."""
-        if dpcodes is None:
-            return None
-
-        if isinstance(dpcodes, str):
-            dpcodes = (DPCode(dpcodes),)
-        elif not isinstance(dpcodes, tuple):
-            dpcodes = (dpcodes,)
-
-        order = ["status_range", "function"]
-        if prefer_function:
-            order = ["function", "status_range"]
-
-        # When we are not looking for a specific datatype, we can append status for
-        # searching
-        if not dptype:
-            order.append("status")
-
-        for dpcode in dpcodes:
-            for key in order:
-                if dpcode not in getattr(self.device, key):
-                    continue
-                if (
-                    dptype == DPType.ENUM
-                    and getattr(self.device, key)[dpcode].type == DPType.ENUM
-                ):
-                    if not (
-                        enum_type := EnumTypeData.from_json(
-                            dpcode, getattr(self.device, key)[dpcode].values
-                        )
-                    ):
-                        continue
-                    return enum_type
-
-                if (
-                    dptype == DPType.INTEGER
-                    and getattr(self.device, key)[dpcode].type == DPType.INTEGER
-                ):
-                    if not (
-                        integer_type := IntegerTypeData.from_json(
-                            dpcode, getattr(self.device, key)[dpcode].values
-                        )
-                    ):
-                        continue
-                    return integer_type
-
-                if dptype not in (DPType.ENUM, DPType.INTEGER):
-                    return dpcode
-
-        for dpcode in dpcodes:
-            if dpcode in self.entity_description.dp_ids:
-                return dpcode
-
-        return None
-
-
-    def get_dptype(
-        self, dpcode: DPCode | None, prefer_function: bool = False
-    ) -> DPType | None:
-        """Find a matching DPCode data type available on for this device."""
-        if dpcode is None:
-            return None
-
-        order = ["status_range", "function"]
-        if prefer_function:
-            order = ["function", "status_range"]
-        for key in order:
-            if dpcode in getattr(self.device, key):
-                return DPType(getattr(self.device, key)[dpcode].type)
-
-        return None
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -894,21 +803,6 @@ async def async_setup_entry(
     entities: list[TuyaBLELight] = []
 
     for desc in descs:
-        if not desc.dp_ids:
-            # Fill it by using the values retrieved from the cloud
-            functions = data.device.device_functions
-            if functions:
-                dp_ids = {}
-                for function in functions:
-                    code = function.get("code")
-                    dp_id = function.get("dp_id")
-                    if dp_id is not None:
-                        dp_ids[code] = dp_id
-                desc.dp_ids = dp_ids
-                _LOGGER.warning("Setting DP_IDs from cloud info : %s - %s", str(desc.dp_ids), str(functions))
-            else:
-                _LOGGER.error("No function for product %s:%s", data.device.category(), data.device.product_id())
-
         entities.append(
             TuyaBLELight(
                     hass,
