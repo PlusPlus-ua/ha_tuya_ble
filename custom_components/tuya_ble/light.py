@@ -65,6 +65,7 @@ WorkModeValueToEnum = {
     WorkModeValue.MUSIC : WorkMode.MUSIC,
 }
 
+# Most of the code here is identical to the one from the Tuya cloud Light component
 @dataclass
 class ColorTypeData:
     """Color Type Data."""
@@ -609,6 +610,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
             commands += [
                 {
                     "code": self._color_data_dpcode,
+                    #!! Color encoding is different from the cloud Light compoonent
                     "value": ("%04X" % int(h)) + ("%04X" % int(s)) + ("%04X" % int(v)),
                 },
             ]
@@ -753,6 +755,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         if not (status_data := self.device.status[self._color_data_dpcode]):
             return None
 
+        #!! Color encoding is different from the cloud Light compoonent
         if len(status_data) == 12:
             h = float(int(status_data[:4], 16))
             s = float(int(status_data[4:8], 16))
@@ -768,7 +771,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
 
 
     # TODO: These methods should be moved to the base BLE Entity class
-    #       but gerneric enum conversion needs some work
+    #       but generic enum string <-> int conversion needs some work
     def _send_command(self, commands : List[Dict[str, Any]]) -> None:
 
         for command in commands:

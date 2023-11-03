@@ -48,8 +48,8 @@ The integration works locally, but connection to Tuya BLE device requires device
 * Irrigation computer (category_id 'ggq')
   + Irrigation computer (product_id '6pahkcau')
 
-* Strip Lights (category_id 'dd')
-  + Magiacous RGB light bar (product_id 'nvfrtxlq')
+* Lights
+  Most light products should be supported as the Light class tries to get device description from the cloud when there are added but only Strip Lights (category_id 'dd') Magiacous RGB light bar (product_id 'nvfrtxlq') has has been tested
 
 ## Support project
 
