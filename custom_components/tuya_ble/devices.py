@@ -39,7 +39,8 @@ from .const import (
     SET_DISCONNECTED_DELAY,
 )
 
-from .base import IntegerTypeData
+from .base import IntegerTypeData, EnumTypeData
+from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ class TuyaBLEEntity(CoordinatorEntity):
         self.async_write_ha_state()
 
     def send_dp_value(self,
-        key: DPCode | Node,
+        key: DPCode | None,
         type: TuyaBLEDataPointType,
         value: bytes | bool | int | str | None = None) -> None:
 

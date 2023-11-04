@@ -18,15 +18,10 @@ from homeassistant.components.tuya.const import (
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_EFFECT,
-    ATTR_RGB_COLOR,
-    ATTR_WHITE,
-    ATTR_COLOR_TEMP_KELVIN,
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
-    ATTR_COLOR_MODE,
     ColorMode,
     LightEntity,
-    LightEntityFeature,
     LightEntityDescription,
 )
 
@@ -40,6 +35,7 @@ from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 from .base import IntegerTypeData
+from .util import remap_value
 
 _LOGGER = logging.getLogger(__name__)
 
