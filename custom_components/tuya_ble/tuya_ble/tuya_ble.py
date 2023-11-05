@@ -8,6 +8,9 @@ import time
 from collections.abc import Callable
 from struct import pack, unpack
 from dataclasses import dataclass
+from typing import Any
+
+import json
 
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
@@ -23,6 +26,7 @@ from bleak_retry_connector import (
 from Crypto.Cipher import AES
 
 from homeassistant.components.tuya.const import (
+    DPCode,
     DPType,
 )
 
@@ -49,6 +53,18 @@ _LOGGER = logging.getLogger(__name__)
 
 
 BLEAK_EXCEPTIONS = (*BLEAK_RETRY_EXCEPTIONS, OSError)
+
+@dataclass
+class TuyaBLEEntityDescription:
+    # Added to info that we get from the cloud
+    function: list[dict[str, dict]]  | None = None
+    status_range: list[dict[str, dict]]  | None = None
+
+    # Replace the values that we got from the cloud
+    values_overrides: dict[str, dict] | None = None
+
+    # Values if nothing was set from the cloud
+    values_defaults: dict[str, dict] | None = None
 
 
 class TuyaBLEDataPoint:
@@ -223,7 +239,14 @@ class TuyaBLEDeviceFunction:
     code: str
     dp_id: int 
     type: DPType
-    values: str | None
+    values: str | dict | list | None
+
+    def __setattr__(self, name:str, value:str | dict | list | None):
+        if name == "values":
+            # string values are JSON representations of the actual values
+            if isinstance(value, str) and (v := json.loads(value)):
+                value = v
+        super().__setattr__(name, value)
 
 class TuyaBLEDevice:
     def __init__(
@@ -328,19 +351,41 @@ class TuyaBLEDevice:
 
         return self._device_info is not None
 
-    def append_functions(self, function: List[dict], status_range: List[dict]) -> None:
+    def append_functions(self, function: list[dict], status_range: list[dict]) -> None:
         if function:
             for f in function:
                 dpcode = f.get("code")
                 if dpcode:
-                    self._function[dpcode] = TuyaBLEDeviceFunction(**f)
-
-        if status_range:
+                    self.function[dpcode] = TuyaBLEDeviceFunction(**f)
+                        
             for f in status_range:
                 dpcode = f.get("code")
                 if dpcode:
-                    self._status_range[dpcode] = TuyaBLEDeviceFunction(**f)
+                    self.status_range[dpcode] = TuyaBLEDeviceFunction(**f)
 
+    def update_description(self, description: TuyaBLEEntityDescription | None) -> None:
+        if not description:
+            return
+        
+        self.append_functions(description.function, description.status_range)
+
+        if description.values_overrides:
+            for key in description.values_overrides:
+                values = description.values_overrides.values
+                if f := self.function.get(key):
+                    f.values = values
+
+                if f := self.status_range.get(key):
+                    f.values = values
+
+        if description.values_defaults:
+            for key in description.values_defaults:
+                values = description.values_defaults.values
+                if f := self.function.get(key) and not f.values:
+                    f.values = values
+
+                if f := self.status_range.get(key) and not f.values:
+                    f.values = values
 
     def _decode_advertisement_data(self) -> None:
         raw_product_id: bytes | None = None
@@ -441,11 +486,11 @@ class TuyaBLEDevice:
             return ""
 
     @property
-    def function(self) -> Dict(str, Dict):
+    def function(self) -> dict(str, dict):
         return self._function
 
     @property
-    def status_range(self) -> Dict(str, Dict):
+    def status_range(self) -> dict(str, dict):
         return self._status_range
 
     @property
@@ -466,7 +511,7 @@ class TuyaBLEDevice:
         return self._datapoints
 
     @property
-    def status(self) -> Dict[str, Any]:
+    def status(self) -> dict[str, Any]:
         """Get current datapoints values."""
 
         result = {}

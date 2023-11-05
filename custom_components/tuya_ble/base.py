@@ -76,10 +76,16 @@ class IntegerTypeData:
         return remap_value(value, from_min, from_max, self.min, self.max, reverse)
 
     @classmethod
-    def from_json(cls, dpcode: DPCode, data: str) -> IntegerTypeData | None:
+    def from_json(cls, dpcode: DPCode, data: str | dict) -> IntegerTypeData | None:
         """Load JSON string and return a IntegerTypeData object."""
-        if not (parsed := json.loads(data)):
-            return None
+    
+        if isinstance(data, str):
+            parsed = json.loads(data)
+        else:
+            parsed = data
+
+        if parsed is None:
+            return
 
         return cls(
             dpcode,
@@ -92,7 +98,7 @@ class IntegerTypeData:
         )
 
     @classmethod
-    def from_dict(cls, dpcode: DPCode, data: Dict | None) -> IntegerTypeData | None:
+    def from_dict(cls, dpcode: DPCode, data: dict | None) -> IntegerTypeData | None:
         """Load Dict and return a IntegerTypeData object."""
 
         if not dict:

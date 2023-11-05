@@ -1,6 +1,7 @@
 """The Tuya BLE integration."""
 from __future__ import annotations
 from dataclasses import dataclass
+from typing import Any
 
 import logging
 from homeassistant.const import CONF_ADDRESS, CONF_DEVICE_ID
@@ -63,7 +64,6 @@ class TuyaBLEProductInfo:
     manufacturer: str = DEVICE_DEF_MANUFACTURER
     fingerbot: TuyaBLEFingerbotInfo | None = None
 
-
 class TuyaBLEEntity(CoordinatorEntity):
     """Tuya BLE base entity."""
 
@@ -120,6 +120,33 @@ class TuyaBLEEntity(CoordinatorEntity):
             self._hass.create_task(datapoint.set_value(value))
 
     
+    def _send_command(self, commands : list[dict[str, Any]]) -> None:
+        """Send the commands to the device"""
+        for command in commands:
+            code = command.get("code")
+            value = command.get("value")
+
+            if code and value is not None:
+                dttype = self.get_dptype(code)
+                if isinstance(value, str):
+                    # We suppose here that cloud JSON type are sent as string
+                    if dttype == DPType.STRING or dttype == DPType.JSON:
+                        self.send_dp_value(code, TuyaBLEDataPointType.DT_STRING, value)
+                    elif dttype == DPType.ENUM:
+                        int_value = 0
+                        values = self.device.function[code].values
+                        if isinstance(self.device.function[code].values, dict):
+                            range = self.device.function[code].values.get("range")
+                            if isinstance(range, list):
+                                int_value = range.index(value) if value in range else None
+                        self.send_dp_value(code, TuyaBLEDataPointType.DT_ENUM, int_value)
+
+                elif isinstance(value, bool):
+                    self.send_dp_value(code, TuyaBLEDataPointType.DT_BOOL, value)
+                else:
+                    self.send_dp_value(code, TuyaBLEDataPointType.DT_VALUE, value)
+
+
     def find_dpid(
         self, dpcode: DPCode | None, prefer_function: bool = False
     ) -> int | None:

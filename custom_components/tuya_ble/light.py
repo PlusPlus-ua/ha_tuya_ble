@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 import logging
 import json
+import copy
 
 from typing import Any, Callable, cast
 from enum import IntEnum, StrEnum, Enum
@@ -17,7 +18,6 @@ from homeassistant.components.tuya.const import (
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    ATTR_EFFECT,
     ATTR_COLOR_TEMP,
     ATTR_HS_COLOR,
     ColorMode,
@@ -32,34 +32,15 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
-from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
-from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 from .base import IntegerTypeData
 from .util import remap_value
+from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
+from .tuya_ble import (
+    TuyaBLEDevice, 
+    TuyaBLEEntityDescription,
+)
 
 _LOGGER = logging.getLogger(__name__)
-
-# Actually might need to be defined in the mapping
-class WorkModeValue(IntEnum):
-    """Work modes."""
-    COLOUR = 0
-    SCENE = 1
-    WHITE = 2
-    MUSIC = 3
-
-WorkModeEnumToValue = {
-    WorkMode.COLOUR : WorkModeValue.COLOUR,
-    WorkMode.SCENE : WorkModeValue.SCENE,
-    WorkMode.WHITE : WorkModeValue.WHITE,
-    WorkMode.MUSIC : WorkModeValue.MUSIC,
-}
-
-WorkModeValueToEnum = {
-    WorkModeValue.COLOUR : WorkMode.COLOUR,
-    WorkModeValue.SCENE : WorkMode.SCENE,
-    WorkModeValue.WHITE : WorkMode.WHITE,
-    WorkModeValue.MUSIC : WorkMode.MUSIC,
-}
 
 # Most of the code here is identical to the one from the Tuya cloud Light component
 @dataclass
@@ -106,9 +87,11 @@ class ColorData:
         """Get the brightness value from this color data."""
         return round(self.type_data.v_type.remap_value_to(self.v_value, 0, 255))
 
-
 @dataclass
-class TuyaLightEntityDescription(LightEntityDescription):
+class TuyaLightEntityDescription(
+            TuyaBLEEntityDescription, 
+            LightEntityDescription
+            ):
     """Describe an Tuya light entity."""
 
     brightness_max: DPCode | None = None
@@ -120,26 +103,46 @@ class TuyaLightEntityDescription(LightEntityDescription):
     default_color_type: ColorTypeData = field(
         default_factory=lambda: DEFAULT_COLOR_TYPE_DATA
     )
-    function: List[dict[DPCode, Any]]  | None = None
-    status_range: List[dict[DPCode, Any]]  | None = None
 
 
 # You can add here description for device for which automatic capabilities setting
-# from the cloud data doesn't work
+# from the cloud data doesn't work - if "key" is "", then products descriptions
+# defined fields override the category ones.
+# Else the products descriptions are full descriptions and replace the category ones
+#
 # function/status range are array of dicts descriptions the DPs
+# Values are added (replace for same DP) to what we get from the cloud
 # ex: 
+# key = ""
 # functions = [
-#   {'code': 'switch_led', 'dp_id': 1, 'type': 'Boolean', 'values': '{}'},
-#   {'code': 'bright_value', 'dp_id': 3, 'type': 'Integer', 'values': '{"min":10,"max":1000,"scale":0,"step":1}'}, 
-#   {'code': 'colour_data', 'dp_id': 5, 'type': 'Json', 'values': '{"h":{"min":0,"scale":0,"unit":"","max":360,"step":1},"s":{"min":0,"scale":0,"unit":"","max":1000,"step":1},"v":{"min":0,"scale":0,"unit":"","max":1000,"step":1}}'}, 
+#   {"code": "switch_led", "dp_id": 1, "type": "Boolean", "values": {}},
+#   {"code": "bright_value", "dp_id": 3, "type": "Integer", "values": {"min":10,"max":1000,"scale":0,"step":1}}, 
+#   {"code": "colour_data", "dp_id": 5, "type": "Json", "values": {"h":{"min":0,"scale":0,"unit":"","max":360,"step":1},"s":{"min":0,"scale":0,"unit":"","max":1000,"step":1},"v":{"min":0,"scale":0,"unit":"","max":1000,"step":1}}}, 
 # ]
 # ex:
 # <category> : { <productid> : [ TuyaLightEntityDescription(); ... ] },
 # ...}
 ProductsMapping: dict[str, dict[str, tuple[TuyaLightEntityDescription, ...]]] = {
+    "dd": {
+        "nvfrtxlq" : (
+            TuyaLightEntityDescription(
+                key= "", # just override the category description from these set keys 
+                values_overrides={
+                    DPCode.WORK_MODE : {
+                        "range" : {
+                            WorkMode.COLOUR,
+                            "dynamic_mod",
+                            "scene_mod",
+                            WorkMode.MUSIC,
+                        }
+                    }
+                }
+            ),
+        )
+    }
 }
 
-# Copied from standard Tuya light component
+# Copied from standard Tuya light component - we could add some default values here too
 LIGHTS: dict[str, tuple[TuyaLightEntityDescription, ...]] = {
     # Curtain Switch
     # https://developer.tuya.com/en/docs/iot/category-clkg?id=Kaiuz0gitil39
@@ -442,13 +445,66 @@ LIGHTS["cz"] = LIGHTS["kg"]
 # https://developer.tuya.com/en/docs/iot/s?id=K9gf7o5prgf7s
 LIGHTS["pc"] = LIGHTS["kg"]
 
+# update the category mapping using the product mapping overrides
+# both tuple should have the same size
+def update_mapping(category_description: tuple[TuyaLightEntityDescription], mapping: tuple[TuyaLightEntityDescription]) -> tuple[TuyaLightEntityDescription]:
+    m = tuple()
+    l = list(category_description)
+    for desc in mapping:
+        cat_desc = l.pop(0)
+        if desc.key == "":
+            cat_desc = copy.deepcopy(cat_desc)
+            
+            for key in [
+                        "brightness_max", 
+                        "brightness_min", 
+                        "color_data", 
+                        "color_mode", 
+                        "color_temp", 
+                    ]:
+                if v := getattr(desc, key):
+                    setattr(cat_desc, key, v)
+
+            for key in [
+                        "function", 
+                        "status_range", 
+                    ]:
+                if v := getattr(desc, key):
+                    l = getattr(desc, key)
+                    if l:
+                        l.append(v)
+                    else:
+                        l = v
+                    setattr(cat_desc, key, l)
+
+            for key in [
+                        "values_overrides", 
+                        "values_defaults", 
+                    ]:
+                if v := getattr(desc, key):
+                    l = getattr(desc, key)
+                    if l:
+                        l.update(v)
+                    else:
+                        l = v
+                    setattr(cat_desc, key, l)
+
+            desc = cat_desc
+
+        m = m + (desc,)
+
+    return m
+
 def get_mapping_by_device(device: TuyaBLEDevice) -> tuple[TuyaLightEntityDescription]:
+    category_mapping = LIGHTS.get(device.category)
+
     category = ProductsMapping.get(device.category)
     if category is not None:
-        product_mapping = category.get(device.product_id)
-        if product_mapping is not None:
-             return product_mapping
-    return LIGHTS.get(device.category)
+        product_mapping_overrides = category.get(device.product_id)
+        if product_mapping_overrides is not None:
+             return update_mapping(category_mapping, product_mapping_overrides)
+             
+    return category_mapping
 
 
 class TuyaBLELight(TuyaBLEEntity, LightEntity):
@@ -481,8 +537,10 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         self._attr_unique_id = f"{super().unique_id}{description.key}"
         self._attr_supported_color_modes: set[ColorMode] = set()
         
-        # Add the functions explicitely declared in the description to the one discovered by the device
-        device.append_functions(description.function, description.status_range)
+        # Update/override the device info from our description
+        device.update_description(description)
+
+        _LOGGER.warning(device.function)
 
         # Determine DPCodes
         self._color_mode_dpcode = self.find_dpcode(
@@ -517,8 +575,12 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
             else:
                 values = self.device.status_range[dpcode].values
 
+            function_data = values
+            if isinstance(function_data, str):
+                function_data = json.loads(function_data)
+
             # Fetch color data type information
-            if function_data := json.loads(values):
+            if function_data:
                 self._color_data_type = ColorTypeData(
                     h_type=IntegerTypeData(dpcode, **function_data["h"]),
                     s_type=IntegerTypeData(dpcode, **function_data["s"]),
@@ -607,6 +669,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                 {
                     "code": self._color_data_dpcode,
                     #!! Color encoding is different from the cloud Light compoonent
+                    #!! not sure that the encoding is the same for all light categories
                     "value": ("%04X" % int(h)) + ("%04X" % int(s)) + ("%04X" % int(v)),
                 },
             ]
@@ -752,6 +815,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
             return None
 
         #!! Color encoding is different from the cloud Light compoonent
+        #!! not sure that the encoding is the same for all light categories
         if len(status_data) == 12:
             h = float(int(status_data[:4], 16))
             s = float(int(status_data[4:8], 16))
@@ -764,31 +828,6 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                 )   
 
         return None
-
-
-    # TODO: These methods should be moved to the base BLE Entity class
-    #       but generic enum string <-> int conversion needs some work
-    def _send_command(self, commands : List[Dict[str, Any]]) -> None:
-
-        for command in commands:
-            code = command.get("code")
-            value = command.get("value")
-
-            if code and value is not None:
-                dttype = self.get_dptype(code)
-                if isinstance(value, str):
-                    if dttype == DPType.STRING or dttype == DPType.JSON:
-                        self.send_dp_value(code, TuyaBLEDataPointType.DT_STRING, value)
-                    elif dttype == DPType.ENUM:
-                        # TODO : need some generic stuff for this conversion
-                        value = WorkModeEnumToValue.get(value)
-                        if value is not None:
-                            self.send_dp_value(code, TuyaBLEDataPointType.DT_ENUM, value)
-
-                elif isinstance(value, bool):
-                    self.send_dp_value(code, TuyaBLEDataPointType.DT_BOOL, value)
-                else:
-                    self.send_dp_value(code, TuyaBLEDataPointType.DT_VALUE, value)
 
 
 async def async_setup_entry(
@@ -812,4 +851,3 @@ async def async_setup_entry(
                 )
         )
     async_add_entities(entities)
-
