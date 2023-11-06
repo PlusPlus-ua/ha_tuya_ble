@@ -102,7 +102,7 @@ class TuyaLightEntityDescription(
     color_temp: DPCode | tuple[DPCode, ...] | None = None
     default_color_type: ColorTypeData = field(
         default_factory=lambda: DEFAULT_COLOR_TYPE_DATA
-    )
+    ) 
 
 
 # You can add here description for device for which automatic capabilities setting
@@ -128,6 +128,7 @@ ProductsMapping: dict[str, dict[str, tuple[TuyaLightEntityDescription, ...]]] = 
             TuyaLightEntityDescription(
                 key= "", # just override the category description from these set keys 
                 values_overrides={
+                    # So we still get the right enum values if the product isn't set to DP mode in the cloud settings
                     DPCode.WORK_MODE : {
                         "range" : {
                             WorkMode.COLOUR,
@@ -540,8 +541,8 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
         # Update/override the device info from our description
         device.update_description(description)
 
-        _LOGGER.warning(device.function)
-
+        _LOGGER.debug("%s : sunctions: %s", device.name, device.function)
+        
         # Determine DPCodes
         self._color_mode_dpcode = self.find_dpcode(
             description.color_mode, prefer_function=True
@@ -567,7 +568,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
 
         if (
             dpcode := self.find_dpcode(description.color_data, prefer_function=True)
-        ) and self.get_dptype(dpcode) == DPType.JSON:
+        ) and (self.get_dptype(dpcode) == DPType.JSON or self.get_dptype(dpcode) == DPType.STRING):
             self._color_data_dpcode = dpcode
             self._attr_supported_color_modes.add(ColorMode.HS)
             if dpcode in self.device.function:
@@ -580,7 +581,7 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                 function_data = json.loads(function_data)
 
             # Fetch color data type information
-            if function_data:
+            if function_data and function_data.get("h"):
                 self._color_data_type = ColorTypeData(
                     h_type=IntegerTypeData(dpcode, **function_data["h"]),
                     s_type=IntegerTypeData(dpcode, **function_data["s"]),
