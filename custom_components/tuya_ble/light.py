@@ -666,12 +666,33 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
             v = self._color_data_type.v_type.remap_value_from(
                                     brightness
                                 )
+
+            # Encoding for RGB from localtuya light component
+            if self.__is_color_rgb_encoded():
+                rgb = color_util.color_hsv_to_RGB(
+                    color[0],
+                    color[1],
+                    int(brightness),
+                )
+                colorstr = "{:02x}{:02x}{:02x}{:04x}{:02x}{:02x}".format(
+                    round(rgb[0]),
+                    round(rgb[1]),
+                    round(rgb[2]),
+                    round(h),
+                    round(s),
+                    round(v),
+                )
+            else:
+                colorstr = "{:04x}{:04x}{:04x}".format(
+                    round(h), round(s), round(v)
+                )
+
             commands += [
                 {
                     "code": self._color_data_dpcode,
                     #!! Color encoding is different from the cloud Light compoonent
                     #!! not sure that the encoding is the same for all light categories
-                    "value": ("%04X" % int(h)) + ("%04X" % int(s)) + ("%04X" % int(v)),
+                    "value": colorstr,
                 },
             ]
 
@@ -827,9 +848,28 @@ class TuyaBLELight(TuyaBLEEntity, LightEntity):
                     s_value=s,
                     v_value=v,
                 )   
+        elif len(status_data) > 12:
+            # Encoding for RGB devices from localtuya light component
+            h = int(status_data[6:10], 16)
+            s = int(status_data[10:12], 16)
+            v = int(status_data[12:14], 16)
+            return ColorData(
+                    type_data=self._color_data_type,
+                    h_value=h,
+                    s_value=s,
+                    v_value=v,
+            )
 
         return None
 
+    def __is_color_rgb_encoded(self):
+        if not (status_data := self.device.status[self._color_data_dpcode]):
+            return False
+
+        if not (isinstance(status_data, str)):
+            return False
+
+        return len(status_data) > 12
 
 async def async_setup_entry(
     hass: HomeAssistant,
