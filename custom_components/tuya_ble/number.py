@@ -351,6 +351,57 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ),
         },
     ),
+    "kg": TuyaBLECategoryNumberMapping(
+        products={
+            **dict.fromkeys(
+                [
+                    "mknd4lci"
+                ],  # Fingerbot Plus
+                [
+                    TuyaBLENumberMapping(
+                        dp_id=102,
+                        description=TuyaBLEDownPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
+                    ),
+                    TuyaBLEHoldTimeMapping(dp_id=103),
+                    TuyaBLENumberMapping(
+                        dp_id=106,
+                        description=TuyaBLEUpPositionDescription(),
+                        is_available=is_fingerbot_not_in_program_mode,
+                    ),
+                    TuyaBLENumberMapping(
+                        dp_id=109,
+                        description=NumberEntityDescription(
+                            key="program_repeats_count",
+                            icon="mdi:repeat",
+                            native_max_value=0xFFFE,
+                            native_min_value=1,
+                            native_step=1,
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        is_available=is_fingerbot_repeat_count_available,
+                        getter=get_fingerbot_program_repeat_count,
+                        setter=set_fingerbot_program_repeat_count,
+                    ),
+                    TuyaBLENumberMapping(
+                        dp_id=109,
+                        description=NumberEntityDescription(
+                            key="program_idle_position",
+                            icon="mdi:repeat",
+                            native_max_value=100,
+                            native_min_value=0,
+                            native_step=1,
+                            native_unit_of_measurement=PERCENTAGE,
+                            entity_category=EntityCategory.CONFIG,
+                        ),
+                        is_available=is_fingerbot_in_program_mode,
+                        getter=get_fingerbot_program_position,
+                        setter=set_fingerbot_program_position,
+                    ),
+                ],
+            ),
+        },
+    ),
     "wk": TuyaBLECategoryNumberMapping(
         products={
             **dict.fromkeys(
