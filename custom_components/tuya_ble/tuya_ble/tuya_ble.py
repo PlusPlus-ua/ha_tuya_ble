@@ -54,7 +54,7 @@ _LOGGER = logging.getLogger(__name__)
 
 BLEAK_EXCEPTIONS = (*BLEAK_RETRY_EXCEPTIONS, OSError)
 
-@dataclass
+#@dataclass
 class TuyaBLEEntityDescription:
     # Added to info that we get from the cloud
     function: list[dict[str, dict]]  | None = None
