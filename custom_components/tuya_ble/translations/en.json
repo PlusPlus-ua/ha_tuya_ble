@@ -37,6 +37,9 @@
         "button": {
             "push": {
                 "name": "Push"
+            },
+            "ble_unlock_check": {
+              "name": "Unlock"
             }
         },
         "number": {
@@ -69,11 +72,17 @@
             },
             "up_position": {
                 "name": "Up position"
+            }      ,
+            "ble_unlock_check": {
+              "name": "Unlock"
             }
         },
         "select": {
             "beep_volume": {
                 "name": "Lock Volume"
+            },
+            "language": {
+                "name": "Lock Language"
             },
             "fingerbot_mode": {
                 "name": "Mode",
@@ -156,6 +165,15 @@
             },
             "wrong_password": {
                 "name": "Wrong Password"
+            },
+            "unlock_fingerprint": {
+                "name": "Last used Fingerprint"
+            },
+            "unlock_card": {
+                "name": "Last used Card"
+            },
+            "unlock_password": {
+                "name": "Last used Password"
             }
         },
         "switch": {

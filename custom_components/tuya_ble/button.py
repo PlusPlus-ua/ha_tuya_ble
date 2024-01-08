@@ -108,6 +108,20 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
             ],
         },
     ),
+    "jtmspro": TuyaBLECategoryButtonMapping(
+        products={
+            "xicdxood":  # Raycube K7 Pro+
+            [
+                TuyaBLEButtonMapping(
+                    dp_id=71, # On click it opens the lock, just like connecting via Smart Life App and holding the center button
+                    description=ButtonEntityDescription(
+                        key="ble_unlock_check",
+                        icon="mdi:lock-open-variant-outline",
+                    ),
+                ),
+            ],
+        },
+    ),
 }
 
 
