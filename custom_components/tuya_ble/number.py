@@ -434,7 +434,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         icon="mdi:timer",
                         native_max_value=1440,
                         native_min_value=1,
-                        native_unit_of_measurement=TIME_MINUTES,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
                         native_step=1,
                     ),
                 ),
@@ -445,7 +445,25 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         icon="mdi:timer",
                         native_max_value=1440,
                         native_min_value=1,
-                        native_unit_of_measurement=TIME_MINUTES,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
+                        native_step=1,
+                    ),
+                ),
+            ],
+        },
+    ),
+    "sfkzq": TuyaBLECategoryNumberMapping(
+        products={
+            "nxquc5lb": # Smart water timer - SOP10
+            [
+                TuyaBLENumberMapping(
+                    dp_id=11,
+                    description=NumberEntityDescription(
+                        key="countdown_duration",
+                        icon="mdi:timer",
+                        native_max_value=1440,
+                        native_min_value=1,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
                         native_step=1,
                     ),
                 ),
