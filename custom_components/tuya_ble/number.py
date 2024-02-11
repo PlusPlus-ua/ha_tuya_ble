@@ -15,10 +15,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
-    TIME_MINUTES,
-    TIME_SECONDS,
     VOLUME_MILLILITERS,
     UnitOfTemperature,
+    UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -197,7 +196,7 @@ class TuyaBLEHoldTimeDescription(NumberEntityDescription):
     icon: str = "mdi:timer"
     native_max_value: float = 10
     native_min_value: float = 0
-    native_unit_of_measurement: str = TIME_SECONDS
+    native_unit_of_measurement: str = UnitOfTime.SECONDS
     native_step: float = 1
     entity_category: EntityCategory = EntityCategory.CONFIG
 
@@ -385,7 +384,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         icon="mdi:timer",
                         native_max_value=120,
                         native_min_value=1,
-                        native_unit_of_measurement=TIME_MINUTES,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
                         native_step=1,
                         entity_category=EntityCategory.CONFIG,
                     ),
@@ -422,7 +421,49 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                         icon="mdi:timer",
                         native_max_value=1440,
                         native_min_value=1,
-                        native_unit_of_measurement=TIME_MINUTES,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
+                        native_step=1,
+                    ),
+                ),
+            ],
+            "hfgdqhho": [  # Irrigation computer - SGW02
+                TuyaBLENumberMapping(
+                    dp_id=106,
+                    description=NumberEntityDescription(
+                        key="countdown_duration_z1",
+                        icon="mdi:timer",
+                        native_max_value=1440,
+                        native_min_value=1,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
+                        native_step=1,
+                    ),
+                ),
+                TuyaBLENumberMapping(
+                    dp_id=103,
+                    description=NumberEntityDescription(
+                        key="countdown_duration_z2",
+                        icon="mdi:timer",
+                        native_max_value=1440,
+                        native_min_value=1,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
+                        native_step=1,
+                    ),
+                ),
+            ],
+        },
+    ),
+    "sfkzq": TuyaBLECategoryNumberMapping(
+        products={
+            "nxquc5lb": # Smart water timer - SOP10
+            [
+                TuyaBLENumberMapping(
+                    dp_id=11,
+                    description=NumberEntityDescription(
+                        key="countdown_duration",
+                        icon="mdi:timer",
+                        native_max_value=1440,
+                        native_min_value=1,
+                        native_unit_of_measurement=UnitOfTime.MINUTES,
                         native_step=1,
                     ),
                 ),

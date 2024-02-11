@@ -10,7 +10,7 @@ _Inspired by code of [@redphx](https://github.com/redphx/poc-tuya-ble-fingerbot)
 
 Place the `custom_components` folder in your configuration directory (or add its contents to an existing `custom_components` folder). Alternatively install via [HACS](https://hacs.xyz/).
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PlusPlus-ua&repository=ha_tuya_ble&category=integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=airy10&repository=ha_tuya_ble&category=integration)
 
 ## Usage
 
@@ -47,6 +47,13 @@ The integration works locally, but connection to Tuya BLE device requires device
 
 * Irrigation computer (category_id 'ggq')
   + Irrigation computer (product_id '6pahkcau')
+  + Irrigation computer (product_id 'hfgdqhho')
+
+* Water valve controller (category_id 'sfkzq')
+  + Water valve controller (product_id 'nxquc5lb')
+
+* Lights
+  + Most light products should be supported as the Light class tries to get device description from the cloud when there are added but only Strip Lights (category_id 'dd') Magiacous RGB light bar (product_id 'nvfrtxlq') has has been tested
 
 ## Support project
 
@@ -55,4 +62,3 @@ I am working on this integration in Ukraine. Our country was subjected to brutal
 <p align="center">
   <a href="https://www.buymeacoffee.com/3PaK6lXr4l"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy me an air defense"></a>
 </p>
-

@@ -326,6 +326,35 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                     ),
                 ),
             ],
+            "hfgdqhho": [  # Irrigation computer
+                TuyaBLESwitchMapping(
+                    dp_id=105,
+                    description=SwitchEntityDescription(
+                        key="water_valve_z1",
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+                TuyaBLESwitchMapping(
+                    dp_id=104,
+                    description=SwitchEntityDescription(
+                        key="water_valve_z2",
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+            ],
+        },
+    ),
+    "sfkzq": TuyaBLECategorySwitchMapping(
+        products={
+            "nxquc5lb": [ # Smart water timer - SOP10
+                TuyaBLESwitchMapping(
+                    dp_id=1,
+                    description=SwitchEntityDescription(
+                        key="water_valve",
+                        entity_registry_enabled_default=True,
+                    ),
+                ),
+            ],
         },
     ),
 }

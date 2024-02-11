@@ -17,10 +17,9 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
-    TEMP_CELSIUS,
-    VOLUME_MILLILITERS,
     UnitOfTemperature,
-    UnitOfTime
+    UnitOfTime,
+    UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
@@ -272,7 +271,7 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                     description=SensorEntityDescription(
                         key="water_intake",
                         device_class=SensorDeviceClass.WATER,
-                        native_unit_of_measurement=VOLUME_MILLILITERS,
+                        native_unit_of_measurement=UnitOfVolume.MILLILITERS,
                         state_class=SensorStateClass.MEASUREMENT,
                     ),
                 ),
@@ -300,6 +299,43 @@ mapping: dict[str, TuyaBLECategorySensorMapping] = {
                         key="time_left",
                         device_class=SensorDeviceClass.DURATION,
                         native_unit_of_measurement=UnitOfTime.MINUTES,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                ),
+            ],
+            "hfgdqhho": [  # Irrigation computer - SGW02
+                TuyaBLEBatteryMapping(dp_id=11),
+                TuyaBLESensorMapping(
+                    dp_id=111,
+                    description=SensorEntityDescription(
+                        key="use_time_z1",
+                        device_class=SensorDeviceClass.DURATION,
+                        native_unit_of_measurement=UnitOfTime.SECONDS,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                ),
+                TuyaBLESensorMapping(
+                    dp_id=110,
+                    description=SensorEntityDescription(
+                        key="use_time_z2",
+                        device_class=SensorDeviceClass.DURATION,
+                        native_unit_of_measurement=UnitOfTime.SECONDS,
+                        state_class=SensorStateClass.MEASUREMENT,
+                    ),
+                ),
+            ],
+        },
+    ),
+    "sfkzq": TuyaBLECategorySensorMapping(
+        products={
+            "nxquc5lb": [ # Smart water timer - SOP10
+                TuyaBLEBatteryMapping(dp_id=7),
+                TuyaBLESensorMapping(
+                    dp_id=15,
+                    description=SensorEntityDescription(
+                        key="use_time_one",
+                        device_class=SensorDeviceClass.DURATION,
+                        native_unit_of_measurement=UnitOfTime.SECONDS,
                         state_class=SensorStateClass.MEASUREMENT,
                     ),
                 ),
