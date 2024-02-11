@@ -26,7 +26,6 @@ from homeassistant.components.tuya.const import (
     TUYA_RESPONSE_RESULT,
     TUYA_RESPONSE_SUCCESS,
 )
-
 from homeassistant.helpers.entity import DeviceInfo, EntityDescription
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -37,7 +36,6 @@ from tuya_iot import (
     TuyaOpenAPI,
     AuthType,
     TuyaOpenMQ,
-    TuyaDeviceManager,
 )
 
 from .tuya_ble import (
@@ -54,17 +52,13 @@ from .const import (
     CONF_PRODUCT_ID,
     CONF_DEVICE_NAME,
     CONF_PRODUCT_NAME,
+    CONF_FUNCTIONS,
+    CONF_STATUS_RANGE,
     DOMAIN,
     TUYA_API_DEVICES_URL,
     TUYA_API_FACTORY_INFO_URL,
+    TUYA_API_DEVICE_SPECIFICATION,
     TUYA_FACTORY_INFO_MAC,
-    TUYA_API_DEVICES_URL,
-    TUYA_API_FACTORY_INFO_URL,
-    TUYA_FACTORY_INFO_MAC,
-    CONF_ACCESS_ID,
-    CONF_ACCESS_SECRET,
-    CONF_AUTH_TYPE,
-    SMARTLIFE_APP,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -184,7 +178,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
             item.api.get,
             TUYA_API_DEVICES_URL % (item.api.token_info.uid),
         )
-        if devices_response.get(TUYA_RESPONSE_SUCCESS):
+        if devices_response.get(TUYA_RESPONSE_RESULT):
             devices = devices_response.get(TUYA_RESPONSE_RESULT)
             if isinstance(devices, Iterable):
                 for device in devices:
@@ -192,6 +186,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                         item.api.get,
                         TUYA_API_FACTORY_INFO_URL % (device.get("id")),
                     )
+
                     fi_response_result = fi_response.get(TUYA_RESPONSE_RESULT)
                     if fi_response_result and len(fi_response_result) > 0:
                         factory_info = fi_response_result[0]
@@ -211,6 +206,20 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                                 CONF_PRODUCT_MODEL: device.get("model"),
                                 CONF_PRODUCT_NAME: device.get("product_name"),
                             }
+
+                            spec_response = await self._hass.async_add_executor_job(
+                                    item.api.get,
+                                    TUYA_API_DEVICE_SPECIFICATION % device.get("id")
+                            )
+
+                            spec_response_result = spec_response.get(TUYA_RESPONSE_RESULT)
+                            if spec_response_result:
+                                functions = spec_response_result.get("functions")
+                                if functions:
+                                    item.credentials[mac][CONF_FUNCTIONS] = functions
+                                status = spec_response_result.get("status")
+                                if status:
+                                    item.credentials[mac][CONF_STATUS_RANGE] = status
 
     async def build_cache(self) -> None:
         global _cache
@@ -270,6 +279,7 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                         break
             if cache_key:
                 item = _cache.get(cache_key)
+
             if item is None or force_update:
                 if self._is_login_success(await self.login(True)):
                     item = _cache.get(cache_key)
@@ -289,6 +299,8 @@ class HASSTuyaBLEDeviceManager(AbstaractTuyaBLEDeviceManager):
                 credentials.get(CONF_DEVICE_NAME, ""),
                 credentials.get(CONF_PRODUCT_MODEL, ""),
                 credentials.get(CONF_PRODUCT_NAME, ""),
+                credentials.get(CONF_FUNCTIONS, []),
+                credentials.get(CONF_STATUS_RANGE, []),
             )
             _LOGGER.debug("Retrieved: %s", result)
             if save_data:
